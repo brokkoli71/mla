@@ -12,7 +12,9 @@ def dot_product(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     assert a.size() == b.size(), "Input vectors must have the same size."
 
     result = torch.tensor(0.0)
-    # TODO: implement using a for loop
+
+    for i in range(a.size(0)):
+        result += a[i] * b[i]
 
     return result
 
@@ -30,7 +32,11 @@ def matmul_loops(A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
     assert k == k2, "Incompatible matrix dimensions"
     
     C = torch.zeros(m, n)
-    # TODO: implement using three nested for loops
+
+    for i in range(m):
+        for l in range(n):
+            for k3 in range(k):
+                C[i,l] += A[i,k3] * B[k3,l]
 
     return C
 
@@ -44,7 +50,10 @@ def matmul_dot(A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
     assert k == k2, "Incompatible matrix dimensions"
     
     C = torch.zeros(m, n)
-    # TODO: implement using two for loops and calls to dot_product
+    
+    for i in range(m):
+        for l in range(n):
+            C[i,l] = dot_product(A[i,:], B[:,l])
 
     return C
 
