@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "sphinx>=9.1.0",
+    "torch>=2.11.0",
 ]
