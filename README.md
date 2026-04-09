@@ -1,5 +1,7 @@
 # mla
 
+Published docs: https://brokkoli71.github.io/mla/
+
 ## Build docs locally
 
 1. Sync dependencies (includes docs group by default):
