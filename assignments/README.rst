@@ -13,6 +13,9 @@ Assignments
    * - 01
      - Tensors and Einsum
      - 04/13
+   * - 02
+     - GPU Architecture and cuTile
+     - 04/20
 
 
 ----
