@@ -8,8 +8,17 @@ Machine Learning Accelerators documentation
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Assignments:
 
-   assignment_01
-   assignment_02
+   01_assignment
+   02_assignment
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Submissions:
+
+   01_results
+   02_results
+

@@ -1,0 +1,8 @@
+matrix_copy benchmark for N=16: 0.08 ms
+matrix_copy benchmark for N=32: 0.09 ms
+matrix_copy benchmark for N=64: 0.10 ms
+matrix_copy benchmark for N=128: 0.12 ms
+matrix_copy benchmark for N=256: 0.16 ms
+matrix_copy benchmark for N=512: 0.28 ms
+matrix_copy benchmark for N=1024: 0.62 ms
+matrix_copy benchmark for N=2048: 1.33 ms
