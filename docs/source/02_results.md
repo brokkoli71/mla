@@ -1,7 +1,7 @@
 # Assignment 02: GPU Architecture and cuTile
 
 
-assignments/02_assignment/src/__main__.py contains the main function that runs all the tasks for this assignment. Each task is implemented in a separate file in the same directory. The results of each task are printed to the console when the main function is executed.
+The file `assignments/02_assignment/src/__main__.py` contains the main function that runs all the tasks for this assignment. Each task is implemented in a separate file in the same directory. The results of each task are printed to the console when the main function is executed.
 
 
 ## Task 1: GPU Device Properties
