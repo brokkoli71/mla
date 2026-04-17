@@ -3,3 +3,4 @@ local_notes
 .venv
 docs/build
 scripts
+*.pyc

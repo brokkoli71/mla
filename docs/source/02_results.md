@@ -1,5 +1,9 @@
 # Assignment 02: GPU Architecture and cuTile
 
+
+assignments/02_assignment/src/__main__.py contains the main function that runs all the tasks for this assignment. Each task is implemented in a separate file in the same directory. The results of each task are printed to the console when the main function is executed.
+
+
 ## Task 1: GPU Device Properties
 
 
@@ -15,8 +19,6 @@ CUDA Device Attributes:
         MaxSharedMemoryPerMultiprocessor: 102400
 ```
 
-
----
 
 ## Task 2: Matrix Reduction Kernel
 a) cuTile kernel that reduces a 2D input matrix of arbitrary shape `(M, K)` along its **last** dimension (`K`)

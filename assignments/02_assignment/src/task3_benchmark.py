@@ -1,9 +1,6 @@
 import triton
 import torch
 import cuda.tile as ct
-import cupy as cp
-import numpy as np
-import math
 from task3 import tensor_add_KL, tensor_add_MN
 
 M, N, K, L = 16, 128, 16, 128

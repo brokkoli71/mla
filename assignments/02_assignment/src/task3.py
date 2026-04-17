@@ -1,7 +1,5 @@
 import torch
 import cuda.tile as ct
-import cupy as cp
-import numpy as np
 
 def main():
     M, N, K, L = 16, 128, 16, 128
