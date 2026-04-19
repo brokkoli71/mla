@@ -27,10 +27,10 @@ a) cuTile kernel that reduces a 2D input matrix of arbitrary shape `(M, K)` alon
 :language: python
 ```
 
-b)
-**Report** the theoretical impact on parallelization and the per-kernel-process load as the `M` and `K` dimensions increase or decrease.
+b) As `M` increases, the parallelization increases as more Streaming Multiprocessors (SM) are active. The theoratically performace maximum is when all SM's are used.
+The per-kernel-process load increases with `K`, because every thread needs to load more data from the memory and performs more operations. The increase is non-linear due to the requirement that tile sizes must be powers of 2.
+Any K that is not a power of 2 requires zero-padding to the next power of 2, which introduces computational overhead.
 
---- TODO ---
 
 ## Task 3: 4D Tensor Elementwise Addition
 
