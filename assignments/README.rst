@@ -16,6 +16,9 @@ Assignments
    * - 02
      - GPU Architecture and cuTile
      - 04/20
+   * - 03
+     - Matrix Multiplication on GPU
+     - 04/27
 
 
 ----
