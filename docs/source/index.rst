@@ -13,6 +13,7 @@ Machine Learning Accelerators documentation
 
    01_assignment
    02_assignment
+   03_assignment
 
 
 .. toctree::
