@@ -24,7 +24,7 @@ a) **Your task** is to implement two cuTile kernels that each compute a matrix m
 1. **`kernel_fp16`**: Inputs `A` and `B` are `FP16`, accumulator/output `C` is `FP32`
 2. **`kernel_fp32`**: Inputs `A` and `B` are `FP32`, accumulator/output `C` is `FP32`
 
-Both kernels should use `ct.mma` to perform the tile-level multiply-accumulate. Use a single CTA (1 block in the grid) per kernel launch and use the fixed tile shape of `(m_tile=64, n_tile=64, k_tile=64)`.
+Both kernels should use `ct.mma` to perform the tile-level multiply-accumulate. Use a single block (1 block in the grid) per kernel launch and use the fixed tile shape of `(m_tile=64, n_tile=64, k_tile=64)`, meaning that each `mma` instruction performs a square matrix multiplication of shape `m = n = k = 64`. Loop over the contraction dimension inside the kernel to accumulate results in the output matrix.
 
 **Verify** that both kernels compute correct results via `torch.matmul` using `torch.allclose`.
 
@@ -46,7 +46,7 @@ Write a cuTile kernel that computes `C = A @ B` for input matrices:
 - The kernel should work with tile sizes that are specified by the calling function
 - Map block IDs (BIDs) in row-major order: `BID 0` covers the top-left output tile, `BID 1` the tile to its right, and so on, wrapping to the next row when the current row of tiles is exhausted
 - **The kernel should support matrix shapes that are not powers of 2**
-- Use `ct.mma` for the inner accumulation step
+- Use `ct.mma` for the inner accumulation step. The tile sizes correspond to the shape of the `ct.mma` instruction.
 
 **Verify** correctness by comparing `C` against `torch.matmul(A, B)` using `torch.allclose`.
 
