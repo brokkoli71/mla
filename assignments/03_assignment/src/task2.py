@@ -10,6 +10,7 @@ def main():
     M = 32
     N = 32
     K = 32
+    # TODO: use this padded sizes
     M_padded = int(2**math.ceil(math.log2(M))) 
     N_padded = int(2**math.ceil(math.log2(N)))
     K_padded = int(2**math.ceil(math.log2(K)))
