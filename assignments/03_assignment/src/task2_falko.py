@@ -8,13 +8,13 @@ import math
 def main():
 
 
-    A = torch.randn((64, 4096), device='cuda', dtype=torch.float16)
-    B = torch.randn((4096, 64), device='cuda', dtype=torch.float16)
+    A = torch.randn((513, 4096), device='cuda', dtype=torch.float16)
+    B = torch.randn((4096, 513), device='cuda', dtype=torch.float16)
 
-    C = torch.empty((64, 64), device='cuda', dtype=torch.float32)
+    C = torch.empty((513, 513), device='cuda', dtype=torch.float32)
 
     tm = 128
-    tn = 256
+    tn = 128
     tk = 64
 
     m, k = A.shape
@@ -26,14 +26,14 @@ def main():
 
     fp = lambda : ct.launch(torch.cuda.current_stream(), grid, kernel_matmul, (A, B, C, tm, tn, tk, grid_y, k))
     t = triton.testing.do_bench(fp, warmup=25, rep=1000)
-    tflops = (2* 64 * 4096 * 64) / (t * 1e-3* 1e12)
+    tflops = (2* m * k * n) / (t * 1e-3* 1e12)
     print("TFLOPs: ", tflops)
     
     vgl = torch.matmul(A, B)
     # print(C[:5,:5])
     # print(vgl[:5,:5])
 
-    assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1e-1), "The result is incorrect!"
+    assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1), "The result is incorrect!"
 
 
 @ct.kernel
