@@ -35,6 +35,7 @@ def main():
     vgl = torch.matmul(A, B)
     # print(C[:5,:5])
     # print(vgl[:5,:5])
+    assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1), "The result is incorrect!"
 
     fp = lambda : ct.launch(torch.cuda.current_stream(), grid, kernel_matmul, (A, B, C1, tm, tn, tk, grid_x,  grid_y))
     t = triton.testing.do_bench(fp, warmup=25, rep=1000)
@@ -42,27 +43,75 @@ def main():
     print("non_swizzle_kernel TFLOPs: ", tflops)
     
     task_4b()
-    assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1), "The result is incorrect!"
+
+
+@ct.kernel
+def kernel_matmul_swizzle_only_8th(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_x, grid_y):
+
+    #swizzle_Group_size = 8
+    pid = ct.bid(0)
+
+    num_pid_in_block =  8 * 8
+    blocks_m = grid_x // 8
+    blocks_n = grid_y // 8
+
+    index_m_temp  = pid % 8
+    index_n_temp = (pid // 8) % 8
+
+    block_index = pid // num_pid_in_block
+
+    m_block_row = (block_index % blocks_m) * 8
+    index_m = m_block_row + index_m_temp
+    
+    n_block_col = (pid // (num_pid_in_block * blocks_m)) * 8
+    index_n = n_block_col + index_n_temp
+    
+
+
+    # first_index_m = (index_n_temp // 8) * 8
+    # index_m = (first_index_m + index_m_temp) % (grid_x * 8)
+
+    # index_n_block = index_n_temp % 8
+    # firs_index_n_block = (pid // threads_in_x_block) * 8
+    # index_n = firs_index_n_block + index_n_temp
+ 
+
+    num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
+    accumulator = ct.full((tm, tn), 0, dtype=ct.float32)
+
+
+    for k in range(num_tiles_k):                                                
+        
+        a = ct.load(A, index=(index_m, k), shape=(tm, tk), padding_mode=ct.PaddingMode.ZERO)
+        b = ct.load(B, index=(k, index_n), shape=(tk, tn), padding_mode=ct.PaddingMode.ZERO)
+
+        accumulator = ct.mma(a, b, accumulator)
+
+    ct.store(C, index=(index_m, index_n), tile=accumulator)
 
 
 @ct.kernel
 def kernel_matmul_swizzle(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_x, grid_y):
 
-    #swizzle_Group_size = 8
+    swizzle_size = 8
     pid = ct.bid(0)
 
-    threads_in_x_block = (8 * 8 * grid_x)
+    num_pid_in_block = swizzle_size * grid_y
+    block_index = (pid // num_pid_in_block)
+    
+    begin_m = (block_index * swizzle_size)
 
-    index_m_temp  = pid % 8
-    index_n_temp = pid // 8
+    swizzle = swizzle_size
 
-    first_index_m = (index_n_temp // 8) * 8
-    index_m = (first_index_m + index_m_temp) % (grid_x * 8)
+    if (begin_m + swizzle_size) > grid_x:
+        swizzle = grid_x - begin_m
 
-    index_n_block = index_n_temp % 8
-    firs_index_n_block = (pid // threads_in_x_block) * 8
-    index_n = firs_index_n_block + index_n_temp
- 
+    index_m_temp  = pid % swizzle
+    index_n_temp = pid // swizzle
+    
+    index_n = index_n_temp % grid_y
+    index_m = begin_m + index_m_temp
+
 
     num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
     accumulator = ct.full((tm, tn), 0, dtype=ct.float32)

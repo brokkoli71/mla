@@ -58,15 +58,28 @@ BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.57 TFLOPS
 ## Task 4: L2 Cache Optimization via Block Swizzling
 
 
-Our swizzeling is sadly not correct
 
 ```{literalinclude} ../../assignments/03_assignment/src/task3.py
 :language: python
-:lines: 47-77
+:lines: 93-127
 ```
+
+**Output:**
+```
+swizzle_kernel TFLOPs:  68.14132984785671
+non_swizzle_kernel TFLOPs:  27.46563761972282
+```
+
+Pid are chosen in horizontal Stripes. Every 8th pid is wraped around the the horizontal axis. Computing the first 8 rows in a horizontal line.
+When the Stripe is finished. The next Stripe is computed, starting at row 9 and so on.
+ At the last Stripe the remaining heiht of the stripe (the rows) are calculated and these remaining rows are computed.
 
 
 ![alt text](../../assignments/03_assignment/src/task4b_heatmap_512.png)
 
+-> BEST tile shape for 512x512x512 is (128, 64, 32) achieving 10.77 TFLOPS
+
 ![alt text](../../assignments/03_assignment/src/task4b_heatmap_2048.png)
+
+-> BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.77 TFLOPS
 
