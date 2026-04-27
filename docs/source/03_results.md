@@ -70,9 +70,9 @@ swizzle_kernel TFLOPs:  68.14132984785671
 non_swizzle_kernel TFLOPs:  27.46563761972282
 ```
 
-Pid are chosen in horizontal Stripes. Every 8th pid is wraped around the the horizontal axis. Computing the first 8 rows in a horizontal line.
-When the Stripe is finished. The next Stripe is computed, starting at row 9 and so on.
- At the last Stripe the remaining heiht of the stripe (the rows) are calculated and these remaining rows are computed.
+PIDs are mapped into horizontal 'stripes' across the output matrix. Each stripe consists of 8 rows. Within a stripe, the PIDs traverse the tiles column by column: the first 8 PIDs compute a vertical column of 8 tiles downwards.
+When the stripe is finished. The next stripe is computed, starting at row index 8.
+At the last stripe the remaining heiht of the stripe (the rows) are calculated dynamically, to prevent out-of-bounds memory accesses.
 
 
 ![alt text](../../assignments/03_assignment/src/task_4b_heatmap_512.png)
