@@ -37,13 +37,13 @@ The file `assignments/03_assignment/src/__main__.py` contains the main function 
 
 a) Benchmark your kernel with tile shapes `(64, 64, 64)` for square matrix multiplications of sizes:
 
-![alt text](../../assignments/03_assignment/src/task3a_scaling.png)
+![alt text](../../assignments/03_assignment/src/task_3a_scaling.png)
 
 b) Fix the matrix size at `2048 × 2048 × 2048`, as well as `512 × 512 × 512`, and benchmark all tile shape combinations (27 total):
 
-![alt text](../../assignments/03_assignment/src/task3b_heatmap_512.png)
+![alt text](../../assignments/03_assignment/src/task_3b_heatmap_512.png)
 
-![alt text](../../assignments/03_assignment/src/task3b_heatmap_2048.png)
+![alt text](../../assignments/03_assignment/src/task_3b_heatmap_2048.png)
 
 
 **Output:**
@@ -61,7 +61,7 @@ BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.57 TFLOPS
 
 ```{literalinclude} ../../assignments/03_assignment/src/task3.py
 :language: python
-:lines: 93-127
+:pyobject: kernel_matmul_swizzle
 ```
 
 **Output:**
