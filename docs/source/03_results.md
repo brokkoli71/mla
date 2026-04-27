@@ -59,7 +59,7 @@ BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.57 TFLOPS
 
 
 
-```{literalinclude} ../../assignments/03_assignment/src/task3.py
+```{literalinclude} ../../assignments/03_assignment/src/task4.py
 :language: python
 :pyobject: kernel_matmul_swizzle
 ```
