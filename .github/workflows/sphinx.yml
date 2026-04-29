@@ -29,7 +29,7 @@ jobs:
       - name: Install docs dependencies
         run: uv sync --only-group docs --no-default-groups --no-install-project --frozen
       - name: Build HTML
-        run: uv run --no-sync sphinx-build -b html
+        run: uv run --no-sync sphinx-build -b html assignments docs/build/html
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
