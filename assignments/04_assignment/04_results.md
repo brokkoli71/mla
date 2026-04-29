@@ -57,6 +57,9 @@ a) Implement a cuTile kernel for the contraction `eabklxy, ecklyz -> eabcxz` whe
 
 b) Implement a kernel that computes the elementwise multiplication only. Compare runtime results of your fused kernel with sequentially calling the cuTile contraction kernel, then the elementwise multiplication. Choose tensor sizes such that the FLOP count of the contraction is similar to a 2048x2048x2048 matrix multiplication.
 
+```{literalinclude} src/task_2.py
+:language: python
+```
 ## Task 3: GEMM Dimension Size Sweep
 
 a) Implement a contraction kernel that computes the contraction `ackm, bcnk -> abnm`. Assume fixed dimension sizes `|a| = 16`, `|b| = 16`, and `|c| = 32`. The kernel should be able to handle arbitrary sizes for dimensions `mnk`.
