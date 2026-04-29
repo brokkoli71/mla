@@ -1,0 +1,2 @@
+Best config for Size=2048: m_tile=128, n_tile=128, k_tile=64, TFLOPS=51.91
+Best config for Size=512: m_tile=128, n_tile=64, k_tile=128, TFLOPS=9.44
