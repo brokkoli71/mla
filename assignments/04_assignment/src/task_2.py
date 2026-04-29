@@ -49,11 +49,7 @@ def main(
     ct.launch(torch.cuda.current_stream(), grid, multiply, (C, D, c, x, z))
     torch.cuda.synchronize()
     assert torch.allclose(C, expected, atol=1e-0), "The result of b) is incorrect!"
-    print(f"Success!")
-
-
-
-    
+    print(f"Success!")    
 
 @ct.kernel
 def fused(A, B, C, D, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int], z: ct.Constant[int], c: ct.Constant[int]):
