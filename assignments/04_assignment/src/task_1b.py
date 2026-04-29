@@ -6,16 +6,17 @@ import triton
 einsum_str = "eabklxy,ecklyz->eabcxz"
 # M = abx, N = cz, K = kly, C = e
 
-def main():
-    a = 16
-    b = 1024
-    x = 2
-    c = 4
-    z = 16
-    k = 32
-    l = 4
-    y = 8
+def main(
+    a = 16,
+    b = 1024,
+    x = 2,
+    c = 4,
+    z = 16,
+    k = 32,
+    l = 4,
+    y = 8,
     e = 16
+):
     print(f"Tensor shapes: A: {(e,a,b,k,l,x,y)}, B: {(e,c,k,l,y,z)}, C: {(e,a,b,c,x,z)}")
     # TODO: assert not to big (32 GiB)
     size_float16 = 2

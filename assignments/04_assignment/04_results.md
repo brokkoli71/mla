@@ -30,15 +30,20 @@ a) Classify all dimensions in the einsum string `eabklxy, ecklyz -> eabcxz`.
 $$M = abx, N = cz, K = kly, C = e$$
 
 b) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> eabcxz`. Use dimensions `xyz` as your GEMM dimensions. Sequentialize all other K-dimensions, parallelize the remaining dimensions. The kernel should work with arbitrary dimension sizes. You can hand them to your kernel as function arguments.
-
+```{literalinclude} src/task_1b.py
+:language: python
+```
 c) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> eabcxz`. Use dimensions `xyz` as your GEMM dimensions. Sequentialize all other K-dimensions, **as well as the `b` dimension**. Parallelize the remaining dimensions. The kernel should work with arbitrary dimension sizes. You can hand them to your kernel as function arguments.
+```{literalinclude} src/task_1c.py
+:language: python
+```
 
 Find one configuration (dimension sizes) where your kernel from b) performs better and one configuration where your new kernel from c) performs better.
 
 d) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> eabcxz`. **Use dimensions `xyzl` as your GEMM dimensions** by permuting the input tiles of the `ct.mma` instruction, as well as reshaping so that `y` and `l` are merged.
 
 Find one configuration (dimension sizes) where your kernel from b) performs better and one configuration where your new kernel from d) performs better.
-
+TODO
 e) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> eabcxz`. **Use dimensions `exyz` as your GEMM dimensions**, meaning that you perform a 3D `ct.mma` inside the kernel. Sequentialize all other K-dimensions, parallelize the remaining dimensions. The kernel should work with arbitrary dimension sizes.
 
 **Verify** every kernel variant against `torch.einsum()`.
