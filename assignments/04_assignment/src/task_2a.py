@@ -2,6 +2,7 @@ import cuda.tile as ct
 import cupy as cp
 import torch
 import triton
+from task_1b import contraction as contraction_b
 
 einsum_str = "eabklxy,ecklyz->eabcxz"
 # M = abx, N = cz, K = kly, C = e
@@ -15,7 +16,7 @@ def main(
     k = 32,
     l = 4,
     y = 8,
-    e = 16
+    e = 8
 ):
     print(f"Tensor shapes: A: {(e,a,b,k,l,x,y)}, B: {(e,c,k,l,y,z)}, C: {(e,a,b,c,x,z)}")
     # assert not to big (32 GiB)
@@ -28,20 +29,34 @@ def main(
     A = torch.randn((e,a,b,k,l,x,y), device='cuda', dtype=torch.float16)
     B = torch.randn((e,c,k,l,y,z), device='cuda', dtype=torch.float16)
     C = torch.empty((e,a,b,c,x,z), device='cuda', dtype=torch.float16)
+    D = torch.ones((e,a,b,c,x,z), device='cuda', dtype=torch.float16) * 2.0
     
     grid = (e, a, b*c) 
 
     torch.cuda.init()
-    ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l, x, y, z, c))
+    ct.launch(torch.cuda.current_stream(), grid, fused, (A, B, C, D, k, l, x, y, z, c))
     torch.cuda.synchronize()
 
-    expected = torch.einsum(einsum_str, A, B)
-    assert torch.allclose(C, expected, atol=1e-0), "The result is incorrect!"
+    expected = torch.einsum(einsum_str, A, B) * D
+    # expected = torch.mul(expected, D)
+    assert torch.allclose(C, expected, atol=1e-0), "The result of a) is incorrect!"
+
+    C = torch.empty((e,a,b,c,x,z), device='cuda', dtype=torch.float16)
+    torch.cuda.init()
+
+    ct.launch(torch.cuda.current_stream(), grid, contraction_b, (A, B, C, k, l, x, y, z, c))
+    torch.cuda.synchronize()
+    ct.launch(torch.cuda.current_stream(), grid, multiply, (C, D, c, x, z))
+    torch.cuda.synchronize()
+    assert torch.allclose(C, expected, atol=1e-0), "The result of b) is incorrect!"
     print(f"Success!")
+
+
+
     
 
 @ct.kernel
-def contraction(A, B, C, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int], z: ct.Constant[int], c: ct.Constant[int]):
+def fused(A, B, C, D, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int], z: ct.Constant[int], c: ct.Constant[int]):
     e_it = ct.bid(0)
     a_it = ct.bid(1)
     bc_it = ct.bid(2)
@@ -68,10 +83,41 @@ def contraction(A, B, C, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constan
             B_ = ct.reshape(B_, (y, z))
             acc += ct.matmul(A_, B_)
 
-    acc = ct.astype(acc, ct.float16)
+    
+    D_ = ct.load(
+        D, 
+        index=(e_it,a_it,b_it,c_it,0,0), 
+        shape=(1,1,1,1,x,z), 
+        padding_mode=ct.PaddingMode.ZERO
+    )    
+    acc *= D_
     acc = ct.reshape(acc, (1,1,1,1,x,z))
+
+    acc = ct.astype(acc, ct.float16)
     ct.store(C, index=(e_it,a_it,b_it,c_it,0,0), tile=acc)
 
+@ct.kernel
+def multiply(C, D, c: ct.Constant[int], x: ct.Constant[int], z: ct.Constant[int]):
+    e_it = ct.bid(0)
+    a_it = ct.bid(1)
+    bc_it = ct.bid(2)
+    b_it = bc_it // c
+    c_it = bc_it % c
+
+    D_ = ct.load(
+        D, 
+        index=(e_it,a_it,b_it,c_it,0,0), 
+        shape=(1,1,1,1,x,z), 
+        padding_mode=ct.PaddingMode.ZERO
+    )    
+    C_ = ct.load(
+        C, 
+        index=(e_it,a_it,b_it,c_it,0,0), 
+        shape=(1,1,1,1,x,z), 
+        padding_mode=ct.PaddingMode.ZERO
+    )    
+    acc = C_ * D_
+    ct.store(C, index=(e_it,a_it,b_it,c_it,0,0), tile=acc)
 
 if __name__ == "__main__":
     main()

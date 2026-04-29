@@ -18,7 +18,7 @@ def main(
     e = 2
 ):
     print(f"Tensor shapes: A: {(e,a,b,k,l,x,y)}, B: {(e,c,k,l,y,z)}, C: {(e,a,b,c,x,z)}")
-    # TODO: assert not to big (32 GiB)
+    # assert not to big (32 GiB)
     size_float16 = 2
     max_size = 32 * 1024 * 1024 * 1024
     required_size = (e*a*b*k*l*x*y + e*c*k*l*y*z + e*a*b*c*x*z)*size_float16
