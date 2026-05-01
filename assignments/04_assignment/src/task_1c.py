@@ -1,3 +1,5 @@
+import math
+
 import cuda.tile as ct
 import cupy as cp
 import torch
@@ -7,32 +9,36 @@ einsum_str = "eabklxy,ecklyz->eabcxz"
 # M = abx, N = cz, K = kly, C = e
 
 def main(
-    a = 16,
-    b = 16,
-    x = 2,
+    a = 15,
+    b = 15,
+    x = 3,
     c = 4,
-    z = 16,
-    k = 32,
-    l = 4,
-    y = 8,
-    e = 2
+    z = 11,
+    k = 33,
+    l = 5,
+    y = 81,
+    e = 3
 ):
-    print(f"Tensor shapes: A: {(e,a,b,k,l,x,y)}, B: {(e,c,k,l,y,z)}, C: {(e,a,b,c,x,z)}")
+    x_padded = int(2**math.ceil(math.log2(x))) 
+    y_padded = int(2**math.ceil(math.log2(y))) 
+    z_padded = int(2**math.ceil(math.log2(z)))
+
+    print(f"Tensor shapes: A: {(e,a,b,k,l,x_padded,y_padded)}, B: {(e,c,k,l,y_padded,z_padded)}, C: {(e,a,b,c,x_padded,z_padded)}")
     # assert not to big (32 GiB)
     size_float16 = 2
     max_size = 32 * 1024 * 1024 * 1024
-    required_size = (e*a*b*k*l*x*y + e*c*k*l*y*z + e*a*b*c*x*z)*size_float16
+    required_size = (e*a*b*k*l*x_padded*y_padded + e*c*k*l*y_padded*z_padded + e*a*b*c*x_padded*z_padded)*size_float16
     assert required_size < max_size, "The tensors are too big for the GPU memory!"
 
     print(f"Required memory: {required_size / (1024**3):.2f} GiB")
-    A = torch.randn((e,a,b,k,l,x,y), device='cuda', dtype=torch.float16)
-    B = torch.randn((e,c,k,l,y,z), device='cuda', dtype=torch.float16)
-    C = torch.empty((e,a,b,c,x,z), device='cuda', dtype=torch.float16)
-    
-    grid = (e, a, c) 
+    A = torch.randn((e,a,b,k,l,x_padded,y_padded), device='cuda', dtype=torch.float16)
+    B = torch.randn((e,c,k,l,y_padded,z_padded), device='cuda', dtype=torch.float16)
+    C = torch.empty((e,a,b,c,x_padded,z_padded), device='cuda', dtype=torch.float16)
+
+    grid = (e, a, c)
 
     torch.cuda.init()
-    ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l, x, y, z, b))
+    ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l, x_padded, y_padded, z_padded, b))
     torch.cuda.synchronize()
 
     expected = torch.einsum(einsum_str, A, B)
