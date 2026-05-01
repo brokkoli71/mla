@@ -25,7 +25,7 @@ def main(
     B = torch.randn((b,c,n,k), device='cuda', dtype=torch.float16)
     C = torch.empty((a,b,n,m), device='cuda', dtype=torch.float16)
     
-    grid = (a, b, n) 
+    grid = (a, b, n) # or maybe just (a, b)?
 
     torch.cuda.init()
     args = (A, B, C, k, m, n, c)
