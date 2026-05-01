@@ -11,29 +11,37 @@ einsum_str = "eabklxy,ecklyz->eabcxz"
 def main(
     a = 15,
     b = 104,
-    x = 3, #pad this
+    x = 3,
     c = 41,
-    z = 11, #pad this
+    z = 11,
     k = 33,
     l = 5,
-    y = 11, #pad this
-    e = 17
+    y = 11,
+    e = 17,
+    A = None,
+    B = None,
+    C = None,
+    verbose = True
 ):
     x_padded = int(2**math.ceil(math.log2(x))) 
     y_padded = int(2**math.ceil(math.log2(y))) 
     z_padded = int(2**math.ceil(math.log2(z)))
 
-    print(f"Tensor shapes: A: {(e,a,b,k,l,x_padded,y_padded)}, B: {(e,c,k,l,y_padded,z_padded)}, C: {(e,a,b,c,x_padded,z_padded)}")
     # assert not to big (32 GiB)
     size_float16 = 2
     max_size = 32 * 1024 * 1024 * 1024
     required_size = (e*a*b*k*l*x_padded*y_padded + e*c*k*l*y_padded*z_padded + e*a*b*c*x_padded*z_padded)*size_float16
     assert required_size < max_size, "The tensors are too big for the GPU memory!"
 
-    print(f"Required memory: {required_size / (1024**3):.2f} GiB")
-    A = torch.randn((e,a,b,k,l,x_padded,y_padded), device='cuda', dtype=torch.float16)
-    B = torch.randn((e,c,k,l,y_padded,z_padded), device='cuda', dtype=torch.float16)
-    C = torch.empty((e,a,b,c,x_padded,z_padded), device='cuda', dtype=torch.float16)
+    if verbose:
+        print(f"Tensor shapes: A: {(e,a,b,k,l,x_padded,y_padded)}, B: {(e,c,k,l,y_padded,z_padded)}, C: {(e,a,b,c,x_padded,z_padded)}")
+        print(f"Required memory: {required_size / (1024**3):.2f} GiB")
+    if A is None:
+        A = torch.randn((e,a,b,k,l,x_padded,y_padded), device='cuda', dtype=torch.float16)
+    if B is None:
+        B = torch.randn((e,c,k,l,y_padded,z_padded), device='cuda', dtype=torch.float16)
+    if C is None:
+        C = torch.empty((e,a,b,c,x_padded,z_padded), device='cuda', dtype=torch.float16)
 
     grid = (e, a, b*c)
     
@@ -43,7 +51,8 @@ def main(
 
     expected = torch.einsum(einsum_str, A, B)
     assert torch.allclose(C, expected, atol=1e-0), "The result is incorrect!"
-    print(f"Success!")
+    if verbose:
+        print(f"Success!")
     
 
 @ct.kernel

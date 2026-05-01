@@ -1,0 +1,5 @@
+Tensor shapes: A: (1, 16, 16, 16, 16, 8, 8), B: (1, 32, 16, 16, 8, 64), C: (1, 16, 16, 32, 8, 64)
+Required memory: 0.02 GiB
+Execution time of fused kernel: 5.72 ms
+Execution time of separate kernels: 5.23 ms
+Success!

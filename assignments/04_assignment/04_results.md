@@ -40,6 +40,17 @@ c) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> e
 
 Find one configuration (dimension sizes) where your kernel from b) performs better and one configuration where your new kernel from c) performs better.
 
+Configuration: 
+    a = 64
+    c = 64
+    k = 1
+    l = 16
+    y = 32
+    z = 32
+    b = 8
+![alt text](../../assignments/04_assignment/src/benchmark_1b_vs_1c.png)
+
+
 d) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> eabcxz`. **Use dimensions `xyzl` as your GEMM dimensions** by permuting the input tiles of the `ct.mma` instruction, as well as reshaping so that `y` and `l` are merged.
 
 Find one configuration (dimension sizes) where your kernel from b) performs better and one configuration where your new kernel from d) performs better.
@@ -60,6 +71,13 @@ b) Implement a kernel that computes the elementwise multiplication only. Compare
 ```{literalinclude} src/task_2.py
 :language: python
 ```
+
+Output:
+```{literalinclude} src/task_2.out
+:language: python
+```
+
+The fused kernel is actually slower than the separate kernels in this case. This is likely because the fused kernel has a higher register pressure, which can lead to lower occupancy and thus worse performance. Additionally, the fused kernel may not be able to fully utilize the GPU's resources due to the increased complexity of the operations being performed. In contrast, the separate kernels can be optimized independently, allowing for better performance in this specific case.
 ## Task 3: GEMM Dimension Size Sweep
 
 a) Implement a contraction kernel that computes the contraction `ackm, bcnk -> abnm`. Assume fixed dimension sizes `|a| = 16`, `|b| = 16`, and `|c| = 32`. The kernel should be able to handle arbitrary sizes for dimensions `mnk`.

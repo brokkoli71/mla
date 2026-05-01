@@ -6,17 +6,18 @@ from task_1b import contraction as contraction_b
 
 einsum_str = "eabklxy,ecklyz->eabcxz"
 # M = abx, N = cz, K = kly, C = e
-
+# config with flop count similar to 2048x2048x2048 matrix multiplication
+# so product of dimensions of M, N and K each equals 2048 = 2**11 
 def main(
-    a = 16,
-    b = 1024,
-    x = 2,
-    c = 4,
-    z = 16,
-    k = 32,
-    l = 4,
-    y = 8,
-    e = 8
+    a = 2**4,
+    b = 2**4,
+    x = 2**3,
+    c = 2**5,
+    z = 2**6,
+    k = 2**4,
+    l = 2**4,
+    y = 2**3,
+    e = 1
 ):
     print(f"Tensor shapes: A: {(e,a,b,k,l,x,y)}, B: {(e,c,k,l,y,z)}, C: {(e,a,b,c,x,z)}")
     # assert not to big (32 GiB)
@@ -29,30 +30,30 @@ def main(
     A = torch.randn((e,a,b,k,l,x,y), device='cuda', dtype=torch.float16)
     B = torch.randn((e,c,k,l,y,z), device='cuda', dtype=torch.float16)
     C = torch.empty((e,a,b,c,x,z), device='cuda', dtype=torch.float16)
-    D = torch.ones((e,a,b,c,x,z), device='cuda', dtype=torch.float16) * 2.0
+    D = torch.randn((e,a,b,c,x,z), device='cuda', dtype=torch.float16) * 2.0
     
     grid = (e, a, b*c) 
 
     torch.cuda.init()
-    ct.launch(torch.cuda.current_stream(), grid, fused, (A, B, C, D, k, l, x, y, z, c))
-    torch.cuda.synchronize()
-
+    t_ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, fused_contraction_multiplication, (A, B, C, D, k, l, x, y, z, c)))
+    print(f"Execution time of fused kernel: {t_ms:.2f} ms")
     expected = torch.einsum(einsum_str, A, B) * D
-    # expected = torch.mul(expected, D)
     assert torch.allclose(C, expected, atol=1e-0), "The result of a) is incorrect!"
 
     C = torch.empty((e,a,b,c,x,z), device='cuda', dtype=torch.float16)
-    torch.cuda.init()
 
-    ct.launch(torch.cuda.current_stream(), grid, contraction_b, (A, B, C, k, l, x, y, z, c))
-    torch.cuda.synchronize()
-    ct.launch(torch.cuda.current_stream(), grid, multiply, (C, D, c, x, z))
-    torch.cuda.synchronize()
+    def contract_then_multiply():
+        ct.launch(torch.cuda.current_stream(), grid, contraction_b, (A, B, C, k, l, x, y, z, c))
+        ct.launch(torch.cuda.current_stream(), grid, multiply, (C, D, c, x, z))
+
+    t_ms = triton.testing.do_bench(contract_then_multiply)
+    print(f"Execution time of separate kernels: {t_ms:.2f} ms")
+
     assert torch.allclose(C, expected, atol=1e-0), "The result of b) is incorrect!"
     print(f"Success!")    
 
 @ct.kernel
-def fused(A, B, C, D, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int], z: ct.Constant[int], c: ct.Constant[int]):
+def fused_contraction_multiplication(A, B, C, D, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int], z: ct.Constant[int], c: ct.Constant[int]):
     e_it = ct.bid(0)
     a_it = ct.bid(1)
     bc_it = ct.bid(2)
