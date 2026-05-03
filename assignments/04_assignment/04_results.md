@@ -60,12 +60,10 @@ e) Implement a cuTile kernel that computes the contraction `eabklxy, ecklyz -> e
 ```
 
 Tensor shapes: A: (16, 15, 104, 33, 5, 4, 16), B: (16, 41, 33, 5, 16, 16), C: (16, 15, 104, 41, 4, 16)
-Required memory: 0.66 GiB
-1_b:
-Time: 294.75 ms
-
-1_e:
- Time: 1310.34 ms
+```
+1_b Time: 294.75 ms
+1_e Time: 1310.34 ms
+ ```
 
 
 ## Task 2: Kernel Fusion
