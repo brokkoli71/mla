@@ -17,7 +17,7 @@ def main(
     k = 33,
     l = 5,
     y = 11,
-    e = 16,
+    e = 17,
     A = None,
     B = None,
     C = None,
@@ -26,34 +26,34 @@ def main(
     x_padded = int(2**math.ceil(math.log2(x))) 
     y_padded = int(2**math.ceil(math.log2(y))) 
     z_padded = int(2**math.ceil(math.log2(z)))
+    l_padded = int(2**math.ceil(math.log2(l)))
 
     # assert not to big (32 GiB)
     size_float16 = 2
     max_size = 32 * 1024 * 1024 * 1024
-    required_size = (e*a*b*k*l*x_padded*y_padded + e*c*k*l*y_padded*z_padded + e*a*b*c*x_padded*z_padded)*size_float16
+    required_size = (e*a*b*k*l_padded*x_padded*y_padded + e*c*k*l_padded*y_padded*z_padded + e*a*b*c*x_padded*z_padded)*size_float16
     assert required_size < max_size, "The tensors are too big for the GPU memory!"
 
     if verbose:
-        print(f"Tensor shapes: A: {(e,a,b,k,l,x_padded,y_padded)}, B: {(e,c,k,l,y_padded,z_padded)}, C: {(e,a,b,c,x_padded,z_padded)}")
+        print(f"Tensor shapes: A: {(e,a,b,k,l_padded,x_padded,y_padded)}, B: {(e,c,k,l_padded,y_padded,z_padded)}, C: {(e,a,b,c,x_padded,z_padded)}")
         print(f"Required memory: {required_size / (1024**3):.2f} GiB")
     if A is None:
-        A = torch.randn((e,a,b,k,l,x_padded,y_padded), device='cuda', dtype=torch.float16)
+        A = torch.randn((e,a,b,k,l_padded,x_padded,y_padded), device='cuda', dtype=torch.float16)
     if B is None:
-        B = torch.randn((e,c,k,l,y_padded,z_padded), device='cuda', dtype=torch.float16)
+        B = torch.randn((e,c,k,l_padded,y_padded,z_padded), device='cuda', dtype=torch.float16)
     if C is None:
         C = torch.empty((e,a,b,c,x_padded,z_padded), device='cuda', dtype=torch.float16)
 
     grid = (e, a, b*c)
     
     torch.cuda.init()
-    ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l, x_padded, y_padded, z_padded, c))
+    ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l_padded, x_padded, y_padded, z_padded, c))
     torch.cuda.synchronize()
 
     expected = torch.einsum(einsum_str, A, B)
     assert torch.allclose(C, expected, atol=1e-0), "The result is incorrect!"
     if verbose:
-        t_ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, contraction, (A, B, C, k, l, x_padded, y_padded, z_padded, c)))    
-        print(f"Success! Time: {t_ms:.2f} ms")
+        print(f"Success!")
     
 
 @ct.kernel
@@ -67,22 +67,23 @@ def contraction(A, B, C, k: ct.Constant[int], l: ct.Constant[int], x: ct.Constan
     acc = ct.zeros((x, z), dtype=ct.float32)
 
     for k_it in range(k):
-        for l_it in range(l):
-            A_ = ct.load(
-                A, 
-                index=(e_it,a_it,b_it,k_it,l_it,0,0), 
-                shape=(1,1,1,1,1,x,y), 
-                padding_mode=ct.PaddingMode.ZERO
-            )
-            A_ = ct.reshape(A_, (x, y))
-            B_ = ct.load(
-                B, 
-                index=(e_it,c_it,k_it,l_it,0,0), 
-                shape=(1,1,1,1,y,z), 
-                padding_mode=ct.PaddingMode.ZERO
-            )
-            B_ = ct.reshape(B_, (y, z))
-            acc += ct.matmul(A_, B_)
+        A_ = ct.load(
+            A, 
+            index=(e_it,a_it,b_it,k_it,0,0,0), 
+            shape=(1,1,1,1,l,x,y), 
+            padding_mode=ct.PaddingMode.ZERO
+        )
+        A_ = ct.permute(A_, (0,1,2,3,5,4,6))
+        A_ = ct.reshape(A_, (x, y*l))
+
+        B_ = ct.load(
+            B, 
+            index=(e_it,c_it,k_it,0,0,0), 
+            shape=(1,1,1,l,y,z), 
+            padding_mode=ct.PaddingMode.ZERO
+        )
+        B_ = ct.reshape(B_, (y*l, z))
+        acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)
     acc = ct.reshape(acc, (1,1,1,1,x,z))
