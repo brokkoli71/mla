@@ -70,19 +70,18 @@ Tensor shapes: A: (16, 15, 104, 33, 5, 4, 16), B: (16, 41, 33, 5, 16, 16), C: (1
 
 a) Implement a cuTile kernel for the contraction `eabklxy, ecklyz -> eabcxz` where you fuse an elementwise tensor multiplication of a tensor `D` of shape `eabcxz` with the output tensor. The output tensor can be overwritten by the multiplication.
 
-b) Implement a kernel that computes the elementwise multiplication only. Compare runtime results of your fused kernel with sequentially calling the cuTile contraction kernel, then the elementwise multiplication. Choose tensor sizes such that the FLOP count of the contraction is similar to a 2048x2048x2048 matrix multiplication.
-
 ```{literalinclude} src/task_2.py
 :language: python
 :pyobject: fused_contraction_multiplication
 ```
+
+b) Implement a kernel that computes the elementwise multiplication only. Compare runtime results of your fused kernel with sequentially calling the cuTile contraction kernel, then the elementwise multiplication. Choose tensor sizes such that the FLOP count of the contraction is similar to a 2048x2048x2048 matrix multiplication.
 
 ```{literalinclude} src/task_2.py
 :language: python
 :pyobject: multiply
 ```
 
-multiply
 Output:
 ```{literalinclude} src/task_2.out
 :language: python
