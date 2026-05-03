@@ -101,4 +101,9 @@ a) Implement a contraction kernel that computes the contraction `ackm, bcnk -> a
 
 b) Perform the following benchmarks, visualize your results and *explain* your findings:
 
+Scaling the k-dimension increases the computational Operations, whereas expanding the n-dimension grows the DRAM utilization and traffic. 
+Even Numbers of the k-dimension are faster then odd Numbers. 
+Because the n dimension is padded to the next power of two, performance steps occur only when the dimension size crosses a power-of-two threshold (e.g., moving from 64 to 65), as this triggers a doubling of the allocated workspace.
+For the same increase in k and m, the k-Dimension requieres a higher penalty for the execution time. That is because k is an contraction Dimension and creates more computational overhead by triggering more load and matmul operations.
+
 ![alt text](../../assignments/04_assignment/src/benchmark_3.png)
