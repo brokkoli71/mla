@@ -94,6 +94,11 @@ The fused kernel is actually slower than the separate kernels in this case. This
 
 a) Implement a contraction kernel that computes the contraction `ackm, bcnk -> abnm`. Assume fixed dimension sizes `|a| = 16`, `|b| = 16`, and `|c| = 32`. The kernel should be able to handle arbitrary sizes for dimensions `mnk`.
 
+```{literalinclude} src/task_3.py
+:language: python
+:pyobject: contraction
+```
+
 b) Perform the following benchmarks, visualize your results and *explain* your findings:
-1. Assume dimension sizes `|k| = 64`, `|m| = 64`. Benchmark a dimension size sweep for dimension `n`, ranging **from 17 to 129** (non-power-of-two sizes included).
-2. Assume dimension sizes `|m| = 64`, `|n| = 64`. Benchmark a dimension size sweep for dimension `k`, ranging **from 17 to 129** (non-power-of-two sizes included).
+
+![alt text](../../assignments/04_assignment/src/benchmark_3.png)
