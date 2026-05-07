@@ -74,15 +74,15 @@ class Config():
 
     def __str__(self):
         return f"""Config(
-            data_type={self.data_type},
-            prim_main={self.prim_main},
-            prim_last={self.prim_last},
-            prim_first={self.prim_first},
-            dim_types={self.dim_types},
-            exec_types={self.exec_types},
-            dim_sizes={self.dim_sizes},
-            strides={self.strides}
-        )"""
+    data_type={self.data_type},
+    prim_main={self.prim_main},
+    prim_last={self.prim_last},
+    prim_first={self.prim_first},
+    dim_types={self.dim_types},
+    exec_types={self.exec_types},
+    dim_sizes={self.dim_sizes},
+    strides={self.strides}
+)"""
 
 import re
 

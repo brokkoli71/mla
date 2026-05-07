@@ -115,6 +115,11 @@ Consider the batched matrix multiplication expressed as `cmk, ckn -> cmn` with d
 
 a) Use your `generate_config` function from Task 2 to produce the initial `Config` for this contraction. **Report** the resulting config.
 
+Output:
+```{literalinclude} src/task_4a.out
+```
+
+
 b) Use your `Optimizer` and the implemented functions from Task 3 to transform the basic config into an L2-optimized one, following the general L2-reuse pattern from the lecture.
 ```
 config.dim_sizes = [ [...], |m_l2|, |n_l2|, |m_prim|, |n_prim|, |k_prim|]
