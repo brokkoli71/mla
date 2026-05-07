@@ -86,7 +86,7 @@ class Config():
 
 import re
 
-def generate_config(einsum: str, input_shapes: list[tuple[int]]) -> Config:
+def generate_config(einsum: str, input_shapes: list[tuple[int]], dim_order: str | None = None) -> Config:
     # 3 catpure groups: 1 for the output, 2 for the inputs, ignore whitespaces
     einsum = re.sub(r'\s+', '', einsum)
     A_dims, B_dims, C_dims = re.match(r"([a-z]+),([a-z]+)->([a-z]+)", einsum).groups()
@@ -97,7 +97,10 @@ def generate_config(einsum: str, input_shapes: list[tuple[int]]) -> Config:
         seen_add = seen.add
         return [x for x in seq if not (x in seen or seen_add(x))]
     
-    dim_names = remove_duplicates_keep_order(A_dims + B_dims + C_dims)
+    if dim_order is not None:
+        dim_names = list(dim_order)
+    else:
+        dim_names = remove_duplicates_keep_order(A_dims + B_dims + C_dims)
 
     dim_types = []
     dim_sizes = []

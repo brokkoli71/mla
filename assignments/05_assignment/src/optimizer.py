@@ -1,3 +1,5 @@
+from collections.abc import Set
+
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
 class Optimizer:
@@ -80,6 +82,28 @@ class Optimizer:
         self.config = new_config
         return new_config
 
+
+    #d) Implement the function make_executable().
+    #Set exec types and permute the config’s dimensions so that the config becomes executable via cuTile. Use the parallel execution type where possible. Test the resulting configuration with your verify() function from e).
+    def make_executable(self):
+        ...
+    
+    def verify(self):
+        # No K-dimension may have exec_type = PAR.
+        for dim_type, exec_type in zip(self.config.dim_types, self.config.exec_types):
+            if dim_type == DimType.K and exec_type == ExecType.PAR:
+                raise ValueError("K-dimension cannot have parallel execution type.")
+        # order: PAR -> SEQ -> PRIM
+        order = {ExecType.PAR: 0, ExecType.SEQ: 1, ExecType.PRIM: 2}
+        sorted_exec_types = sorted(self.config.exec_types, key=lambda x: order[x])
+        if self.config.exec_types != sorted_exec_types:
+            raise ValueError("Execution types must be in order: PAR -> SEQ -> PRIM.")
+        # The rightmost dimension must be PRIM and the PRIM dimensions must include at least one dimension of each type M, N, and K.
+        prim_dim_types = set(dim_type for dim_type, exec_type in zip(self.config.dim_types, self.config.exec_types) if exec_type == ExecType.PRIM)
+        if not prim_dim_types.issuperset({DimType.M, DimType.N, DimType.K}):
+            raise ValueError("The rightmost dimensions must be PRIM and the PRIM dimensions must include at least one dimension of each type M, N, and K.")
+        
+
 def test_split_dim():
     input_shapes = [(4, 8), (8, 16)]
     einsum = "ab, bc -> ac"
@@ -118,8 +142,56 @@ def test_permute_dims():
     # skip this since the logic is straightforward
     pass 
     
+def test_verify():
+    input_shapes = [(2, 2, 2, 2), (2, 2, 2, 2)]
+    einsum = "abxy, bcyz -> acxz"
+    dim_order = "abcxyz"
+    config = generate_config(einsum, input_shapes, dim_order=dim_order)
+
+    valid_exec_types = [ExecType.PAR, ExecType.SEQ, ExecType.SEQ, ExecType.PRIM, ExecType.PRIM, ExecType.PRIM]
+    config.exec_types = valid_exec_types
+    optimizer = Optimizer(config)
+    optimizer.verify()
+
+    config.exec_types[1] = ExecType.PAR
+    expected_error_message = "K-dimension cannot have parallel execution type."
+    try:
+        optimizer.verify()
+        assert False, "Expected ValueError for K-dimension with parallel execution type, but no error was raised."
+    except ValueError as e:
+        assert str(e) == expected_error_message, f"Expected ValueError with message '{expected_error_message}', but got {str(e)}"
+
+    optimizer.config.exec_types[:3] = [ExecType.SEQ, ExecType.PRIM, ExecType.SEQ]
+    expected_error_message = "Execution types must be in order: PAR -> SEQ -> PRIM."
+    try:
+        optimizer.verify()
+        assert False, "Expected ValueError for invalid execution type order, but no error was raised."
+    except ValueError as e:
+        assert str(e) == expected_error_message, f"Expected ValueError with message '{expected_error_message}', but got {str(e)}"
+
+    optimizer.config.exec_types[:3] = [ExecType.SEQ, ExecType.SEQ, ExecType.PAR]
+    expected_error_message = "Execution types must be in order: PAR -> SEQ -> PRIM."
+    try:        
+        optimizer.verify()
+        assert False, f"Expected ValueError for invalid execution type order, but no error was raised."
+    except ValueError as e:
+        assert str(e) == expected_error_message, f"Expected ValueError with message '{expected_error_message}', but got {str(e)}"
+    print("test_verify passed!")
+
+    optimizer.config.exec_types = [ExecType.SEQ] * 4 + [ExecType.PRIM] * 2
+    expected_error_message = "The rightmost dimensions must be PRIM and the PRIM dimensions must include at least one dimension of each type M, N, and K."   
+    try:
+        optimizer.verify()
+        assert False, f"Expected ValueError for missing PRIM dimension, but no error was raised."
+    except ValueError as e:
+        assert str(e) == expected_error_message, f"Expected ValueError with message '{expected_error_message}', but got {str(e)}"
+    print("test_verify for missing PRIM dimension passed!")
+
+
+
 if __name__ == "__main__":
     test_split_dim()
     test_fuse_dims()
     test_split_fuse_dims()
     test_permute_dims()
+    test_verify()
