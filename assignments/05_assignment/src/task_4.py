@@ -60,26 +60,64 @@ def task_a_and_b():
     optimizer.split_dim(2, inner_size=k_prim) # -> c,m,k,k_prim,n,n_l2,n_prim
     optimizer.split_dim(1, inner_size=m_prim) # -> c,m,m_prim,k,k_prim,n,n_l2,n_prim
     optimizer.split_dim(1, inner_size=m_l2) # -> c,m,m_l2,m_prim,k,k_prim,n,n_l2,n_prim
-    optimizer.permute_dims([0, 1, 6, 2, 7, 4, 3, 8, 5]) # -> c,m,n,m_l2,n_l2,k,m_prim,k_prim,n_prim
-    optimizer.make_executable()
+    optimizer.permute_dims([0, 1, 6, 2, 7, 4, 3, 8, 5]) # -> c,m,n,m_l2,n_l2,k,m_prim,n_prim,k_prim
+    # optimizer.make_executable()
     print(optimizer.config)
+    
+def task_c():
+    c = 4
+    m = n = k = 4096
 
-    grid_dims = [size for exec_type, size in 
-                    zip(optimizer.config.exec_types, optimizer.config.dim_sizes) 
-                    if exec_type == ExecType.PAR]
-    print(f"Grid dimensions: {grid_dims}")
-    def product(lst):
-        result = 1
-        for num in lst:
-            result *= num
-        return result
-    grid = (grid_dims[0], grid_dims[1], product(grid_dims[2:]))
-    print(f"Grid: {grid}")
+    # optimal config from b:
+    m_outer = n_outer = 16
+    m_l2 = n_l2 = 4
+    k_outer = 32
+    m_prim = n_prim = 64
+    k_prim = 128
+
+    A = torch.randn((c, m, k), device='cuda', dtype=torch.float16)
+    B = torch.randn((c, n, k), device='cuda', dtype=torch.float16)
+    C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
+    # c,m,n,m_l2,n_l2,k,m_prim,n_prim,k_prim
+    grid = (c, m_outer*n_outer, m_l2*n_l2)
+
+    ct.launch(torch.cuda.current_stream(), grid, multiply, (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2))
+
+    expected = torch.einsum("cmk, cnk -> cmn", A, B)
+    assert torch.allclose(C, expected, atol=1e-0), "The result of c) is incorrect!"
+    print(f"Success!")
 
 
 @ct.kernel
-def muliply_kernel():
-    pass
+def multiply(A, B, C, n_outer: ct.Constant[int], n_l2: ct.Constant[int], m_prim: ct.Constant[int], n_prim: ct.Constant[int], k_prim: ct.Constant[int], k_outer: ct.Constant[int], m_l2: ct.Constant[int]):
+    c_it = ct.bid(0)
+    mn_outer_it = ct.bid(1)
+    mn_l2_it = ct.bid(2)
+
+    m_outer_it = mn_outer_it // n_outer
+    n_outer_it = mn_outer_it % n_outer
+    m_l2_it = mn_l2_it // n_l2
+    n_l2_it = mn_l2_it % n_l2
+
+    m_it = m_outer_it * m_l2 + m_l2_it
+    n_it = n_outer_it * n_l2 + n_l2_it
+    acc = ct.zeros((m_prim, n_prim), dtype=ct.float32)
+    for k_it in range(k_outer):
+        A_tile = ct.load(
+            A, 
+            index=(c_it,m_it * m_prim, k_it * k_prim), 
+            shape=(1,m_prim,k_prim),
+        ).reshape((m_prim, k_prim))
+        B_tile = ct.load(
+            B, 
+            index=(c_it,n_it * n_prim, k_it * k_prim), 
+            shape=(1,n_prim,k_prim),
+        ).reshape((n_prim, k_prim)).transpose()
+        acc = ct.mma(A_tile, B_tile, acc=acc)
+
+    C_ = acc.astype(ct.float16)
+    ct.store(C, index=(c_it, m_it * m_prim, n_it * n_prim), tile=C_)
 
 if __name__ == "__main__":
-    task_a()
+    task_a_and_b()
+    task_c()
