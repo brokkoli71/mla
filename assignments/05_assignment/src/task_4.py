@@ -89,6 +89,7 @@ def task_c():
     B = torch.randn((c, k, n), device='cuda', dtype=torch.float16)
     C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
     # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
+    # my hope is, that the l2 tiles are executed on the same multiprocessor, which allows them to reuse data in the l2 cache.
     grid = (c, m_outer*n_outer, m_l2*n_l2)
 
     ct.launch(torch.cuda.current_stream(), grid, multiply, (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2))
