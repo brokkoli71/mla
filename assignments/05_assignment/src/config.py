@@ -1,6 +1,7 @@
 
 from dataclasses import dataclass
 import enum
+from typing import Self
 
 """
 - **`DimType`**: `M`, `N`, `K`, `C`
@@ -59,6 +60,18 @@ class Config():
     prim_last: LastType = LastType.NONE
     prim_first: FirstType = FirstType.ZERO
 
+    def from_config(config: Self, **kwargs):
+        return Config(
+            data_type=kwargs.get("data_type", config.data_type),
+            prim_main=kwargs.get("prim_main", config.prim_main),
+            dim_types=kwargs.get("dim_types", config.dim_types),
+            exec_types=kwargs.get("exec_types", config.exec_types),
+            dim_sizes=kwargs.get("dim_sizes", config.dim_sizes),
+            strides=kwargs.get("strides", config.strides),
+            prim_last=kwargs.get("prim_last", config.prim_last),
+            prim_first=kwargs.get("prim_first", config.prim_first)
+        )
+
     def __str__(self):
         return f"""Config(
             data_type={self.data_type},
@@ -70,14 +83,6 @@ class Config():
             dim_sizes={self.dim_sizes},
             strides={self.strides}
         )"""
-
-"""
-Requirements:
-    Classify each dimension index automatically by inspecting in which tensors it appears.
-    Compute strides for every tensor assuming row-major layout. A stride of 0 indicates that the dimension does not appear in that tensor.
-    Set all exec_types to SEQ.
-    Set data_type = DataType.FLOAT16, prim_main = PrimType.GEMM, prim_last = LastType.NONE, prim_first = FirstType.ZERO.
-"""
 
 import re
 
@@ -93,7 +98,7 @@ def generate_config(einsum: str, input_shapes: list[tuple[int]]) -> Config:
         return [x for x in seq if not (x in seen or seen_add(x))]
     
     dim_names = remove_duplicates_keep_order(A_dims + B_dims + C_dims)
-    
+
     dim_types = []
     dim_sizes = []
     for dim in dim_names:
