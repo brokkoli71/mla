@@ -65,25 +65,35 @@ def task_a_and_b():
     print(optimizer.config)
     
 def task_c():
-    c = 4
-    m = n = k = 4096
 
     # optimal config from b:
+    c = 4
     m_outer = n_outer = 16
     m_l2 = n_l2 = 4
     k_outer = 32
     m_prim = n_prim = 64
     k_prim = 128
 
+    # c = 1
+    # m_outer = n_outer = 1
+    # m_l2 = n_l2 = 2
+    # k_outer = 2
+    # m_prim = n_prim = 2
+    # k_prim = 2
+
+    m = m_outer * m_l2 * m_prim
+    n = n_outer * n_l2 * n_prim
+    k = k_outer * k_prim
+
     A = torch.randn((c, m, k), device='cuda', dtype=torch.float16)
-    B = torch.randn((c, n, k), device='cuda', dtype=torch.float16)
+    B = torch.randn((c, k, n), device='cuda', dtype=torch.float16)
     C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
-    # c,m,n,m_l2,n_l2,k,m_prim,n_prim,k_prim
+    # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
     grid = (c, m_outer*n_outer, m_l2*n_l2)
 
     ct.launch(torch.cuda.current_stream(), grid, multiply, (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2))
 
-    expected = torch.einsum("cmk, cnk -> cmn", A, B)
+    expected = torch.einsum("cmk, ckn -> cmn", A, B)
     assert torch.allclose(C, expected, atol=1e-0), "The result of c) is incorrect!"
     print(f"Success!")
 
@@ -101,22 +111,23 @@ def multiply(A, B, C, n_outer: ct.Constant[int], n_l2: ct.Constant[int], m_prim:
 
     m_it = m_outer_it * m_l2 + m_l2_it
     n_it = n_outer_it * n_l2 + n_l2_it
+
     acc = ct.zeros((m_prim, n_prim), dtype=ct.float32)
     for k_it in range(k_outer):
         A_tile = ct.load(
             A, 
-            index=(c_it,m_it * m_prim, k_it * k_prim), 
+            index=(c_it,m_it, k_it), 
             shape=(1,m_prim,k_prim),
         ).reshape((m_prim, k_prim))
         B_tile = ct.load(
             B, 
-            index=(c_it,n_it * n_prim, k_it * k_prim), 
-            shape=(1,n_prim,k_prim),
-        ).reshape((n_prim, k_prim)).transpose()
+            index=(c_it, k_it, n_it), 
+            shape=(1,k_prim,n_prim),
+        ).reshape((k_prim, n_prim))
         acc = ct.mma(A_tile, B_tile, acc=acc)
 
-    C_ = acc.astype(ct.float16)
-    ct.store(C, index=(c_it, m_it * m_prim, n_it * n_prim), tile=C_)
+    C_ = acc.astype(ct.float16).reshape((1, m_prim, n_prim))
+    ct.store(C, index=(c_it, m_it, n_it), tile=C_)
 
 if __name__ == "__main__":
     task_a_and_b()
