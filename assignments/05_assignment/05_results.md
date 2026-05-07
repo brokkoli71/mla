@@ -143,5 +143,10 @@ d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cu
 
 ```{literalinclude} src/task_4.py
 :language: python
+:pyobject: task_c
+```
+
+```{literalinclude} src/task_4.py
+:language: python
 :pyobject: multiply
 ```

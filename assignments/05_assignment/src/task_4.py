@@ -74,13 +74,6 @@ def task_c():
     m_prim = n_prim = 64
     k_prim = 128
 
-    # c = 1
-    # m_outer = n_outer = 1
-    # m_l2 = n_l2 = 2
-    # k_outer = 2
-    # m_prim = n_prim = 2
-    # k_prim = 2
-
     m = m_outer * m_l2 * m_prim
     n = n_outer * n_l2 * n_prim
     k = k_outer * k_prim
