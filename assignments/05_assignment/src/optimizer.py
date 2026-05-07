@@ -8,9 +8,20 @@ class Optimizer:
         self.config = config
 
     """Returns a new configuration with the specified dimension split into two. The optimizer's current configuration is replaced."""
-    def split_dim(self, dim_id: int, outer_size: int, inner_size: int):
+    def split_dim(self, dim_id: int, outer_size: int| None = None, inner_size: int| None = None):
+        if dim_id < 0:
+            dim_id += len(self.config.dim_types)
         original_size = self.config.dim_sizes[dim_id]
-
+        if outer_size is None and inner_size is None:
+            raise ValueError("At least one of outer_size or inner_size must be provided.")
+        if outer_size is None:
+            if original_size % inner_size != 0:
+                raise ValueError(f"Inner size {inner_size} does not divide original size {original_size} and outer size is not provided.")
+            outer_size = original_size // inner_size
+        if inner_size is None:
+            if original_size % outer_size != 0:
+                raise ValueError(f"Outer size {outer_size} does not divide original size {original_size} and inner size is not provided.")
+            inner_size = original_size // outer_size
         if outer_size * inner_size != original_size:
             raise ValueError(f"Outer size {outer_size} and inner size {inner_size} do not multiply to original size {original_size}")
         

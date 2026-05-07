@@ -128,6 +128,12 @@ config.dim_sizes = [ [...], |m_l2|, |n_l2|, |m_prim|, |n_prim|, |k_prim|]
 **Choose** the sizes for `m_l2`, `m_prim`, `n_l2`, `n_prim` and **justify** your choice with respect to L2 cache reuse.
 **Report** the final config.
 
+We want to fit the prim tiles into the max shared memory per block, which is 48 KiB. Using FP32 (4 bytes) for accumulation and FP16 (2 bytes) for inputs, the required memory for one mma is `mma_size = (2 * m_prim * k_prim + 2 * k_prim * n_prim + 4 * m_prim * n_prim)` bytes. We want to maximize `m_prim * n_prim * k_prim` s.t. `mma_size = max_shared_memory_per_block`. This is optimal for `m_prim = n_prim` which leaves an optimization problem:
+```max m_prim^2 * k_prim s.t. 4 * m_prim * k_prim + 4 * m_prim^2 = max_shared_memory_per_block```
+This is solved for $m_prim = \frac{\sqrt{max\_shared\_memory\_per\_block}}{\sqrt{12}}$
+
+In this case we have 48 KiB of shared memory, which results in `m_prim = n_prim = 64` and with `k_prim = max_shared_memory_per_block / (4 * m_prim) - m_prim = 128`.
+
 c) Implement the kernel
 
 Implement a cuTile kernel that computes `cmk, ckn -> cmn` following your optimized config from b). **Verify** correctness of your kernel.
