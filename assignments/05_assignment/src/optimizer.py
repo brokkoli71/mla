@@ -86,8 +86,35 @@ class Optimizer:
     #d) Implement the function make_executable().
     #Set exec types and permute the config’s dimensions so that the config becomes executable via cuTile. Use the parallel execution type where possible. Test the resulting configuration with your verify() function from e).
     def make_executable(self):
-        ...
-    
+        ndims = len(self.config.dim_types)
+        permutation = list(range(ndims))
+
+        # find right most N, M, K dimensions, permute to the right, and set them to PRIM
+        def find_rightmost_dim_id(dim_type: DimType) -> int:
+            return max((i for i, dt in enumerate(self.config.dim_types) if dt == dim_type), default=-1)
+
+        for dim_type in [DimType.M, DimType.N, DimType.K]:
+            dim_id = find_rightmost_dim_id(dim_type)
+            if dim_id == -1:
+                raise ValueError("Cannot make config executable because it is missing at least one of M, N, K dimensions.")
+            
+            # move the dimension to the rightmost position
+            permutation.remove(dim_id)
+            permutation.append(dim_id)
+        
+        # move K dimensions to the right
+        permutation[:-3] = sorted(permutation[:-3], key=lambda i: self.config.dim_types[i] == DimType.K)
+
+        self.permute_dims(permutation)
+
+        # set exec types: rightmost 3 dimensions to PRIM, other K dimensions to SEQ, rest to PAR
+        sequential_k_dims = sum(1 for dt in self.config.dim_types if dt == DimType.K) - 1
+        self.config.exec_types = [ExecType.PAR] * (ndims - sequential_k_dims - 3) + [ExecType.SEQ] * sequential_k_dims + [ExecType.PRIM] * 3
+
+        self.verify() # should not raise an error
+
+        return self.config
+
     def verify(self):
         # No K-dimension may have exec_type = PAR.
         for dim_type, exec_type in zip(self.config.dim_types, self.config.exec_types):
@@ -141,6 +168,20 @@ def test_split_fuse_dims():
 def test_permute_dims():
     # skip this since the logic is straightforward
     pass 
+
+def test_make_executable():
+    input_shapes = [(2, 2, 2, 2), (2, 2, 2, 2)]
+    einsum = "abxy, bcyz -> acxz"
+    dim_order = "abcxyz"
+    config = generate_config(einsum, input_shapes, dim_order=dim_order)
+    optimizer = Optimizer(config)
+    executable_config = optimizer.make_executable()
+    expected_exec_types = [ExecType.PAR] * 2 + [ExecType.SEQ] * 1 + [ExecType.PRIM] * 3
+    assert executable_config.exec_types == expected_exec_types, f"Expected exec types {expected_exec_types}, but got {executable_config.exec_types}"
+
+    optimizer.verify() # should not raise an error
+
+    print("test_make_executable passed!")
     
 def test_verify():
     input_shapes = [(2, 2, 2, 2), (2, 2, 2, 2)]
@@ -194,4 +235,5 @@ if __name__ == "__main__":
     test_fuse_dims()
     test_split_fuse_dims()
     test_permute_dims()
+    test_make_executable()
     test_verify()
