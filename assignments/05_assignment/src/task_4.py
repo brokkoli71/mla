@@ -1,5 +1,7 @@
 import math
 
+import triton
+
 from config import ExecType, generate_config
 from pathlib import Path
 import torch
@@ -64,7 +66,7 @@ def task_a_and_b():
     # optimizer.make_executable()
     print(optimizer.config)
     
-def task_c():
+def task_c_and_d():
 
     # optimal config from b:
     c = 4
@@ -77,20 +79,55 @@ def task_c():
     m = m_outer * m_l2 * m_prim
     n = n_outer * n_l2 * n_prim
     k = k_outer * k_prim
+    A = torch.randn((c, m, k), device='cuda', dtype=torch.float16)
+    B = torch.randn((c, k, n), device='cuda', dtype=torch.float16)
+    C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
+    expected = torch.einsum("cmk, ckn -> cmn", A, B)
+
+    A = A.reshape((c, m_outer, m_l2, m_prim, k_outer, k_prim, 1, 1, 1)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
+    print(A.shape)
+    B = B.reshape((c, 1, 1, 1, k_outer, k_prim, n_outer, n_l2, n_prim)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
+    C = torch.empty((c,m_outer,n_outer,m_l2,n_l2,1,m_prim,n_prim,1), device='cuda', dtype=torch.float16)
+    expected = expected.reshape((c, m_outer, m_l2, m_prim, 1, 1, n_outer, n_l2, n_prim)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
+    # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
+    # A = torch.randn((c,m_outer,1,m_l2,1,k_outer,m_prim,1,k_prim), device='cuda', dtype=torch.float16)
+    # B = torch.randn((c,1,n_outer,1,n_l2,k_outer,1,n_prim,k_prim), device='cuda', dtype=torch.float16)
+    # C = torch.empty((c,m_outer,n_outer,m_l2,n_l2,1,m_prim,n_prim,1), device='cuda', dtype=torch.float16)
+    # my hope is, that the l2 tiles are executed on the same multiprocessor, which allows them to reuse data in the l2 cache.
+    grid = (c, m_outer*n_outer, m_l2*n_l2)
+    args = (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2)
+    ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, multiply, args))
+
+    # permute to (c, m,       k     n,      )
+    # A = A.permute(0, 1, 3, 6, 5, 8, 2, 4, 7,).reshape((c,m,k))
+    # B = B.permute(0, 1, 3, 6, 5, 8, 2, 4, 7,).reshape((c,k,n))
+    # C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
+    # expected = torch.einsum(A.reshape)
+    assert torch.allclose(C, expected, atol=1e-0), "The result of c) is incorrect!"
+    print(f"Execution time of optimized kernel: {ms:.2f} ms")
+    print(f"Success of c)!")
 
     A = torch.randn((c, m, k), device='cuda', dtype=torch.float16)
     B = torch.randn((c, k, n), device='cuda', dtype=torch.float16)
     C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
-    # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
-    # my hope is, that the l2 tiles are executed on the same multiprocessor, which allows them to reuse data in the l2 cache.
-    grid = (c, m_outer*n_outer, m_l2*n_l2)
+    args_baseline = (A, B, C, m_prim, n_prim, k_prim, k_outer)
+    grid_baseline = (c, m_outer*m_l2, n_outer*n_l2)
+    ms_baseline = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid_baseline, baseline_multiply, args_baseline))
+    assert torch.allclose(C, expected, atol=1e-0), "The result of baseline is incorrect!"
 
-    ct.launch(torch.cuda.current_stream(), grid, multiply, (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2))
+    print(f"Execution time of baseline kernel: {ms_baseline:.2f} ms")
 
-    expected = torch.einsum("cmk, ckn -> cmn", A, B)
-    assert torch.allclose(C, expected, atol=1e-0), "The result of c) is incorrect!"
-    print(f"Success!")
+    # max mma tile size according to lecture
+    m_prim = n_prim = 256
+    k_prim = 16
+    k_outer = k // k_prim
+    C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
+    args_baseline = (A, B, C, m_prim, n_prim, k_prim, k_outer)
+    grid_baseline = (c, m//m_prim, n//n_prim)
+    ms_baseline = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid_baseline, baseline_multiply, args_baseline))
+    assert torch.allclose(C, expected, atol=1e-0), "The result of baseline is incorrect!"
 
+    print(f"Execution time of baseline kernel: {ms_baseline:.2f} ms")
 
 @ct.kernel
 def multiply(A, B, C, n_outer: ct.Constant[int], n_l2: ct.Constant[int], m_prim: ct.Constant[int], n_prim: ct.Constant[int], k_prim: ct.Constant[int], k_outer: ct.Constant[int], m_l2: ct.Constant[int]):
@@ -103,26 +140,42 @@ def multiply(A, B, C, n_outer: ct.Constant[int], n_l2: ct.Constant[int], m_prim:
     m_l2_it = mn_l2_it // n_l2
     n_l2_it = mn_l2_it % n_l2
 
-    m_it = m_outer_it * m_l2 + m_l2_it
-    n_it = n_outer_it * n_l2 + n_l2_it
+    # m_it = m_outer_it * m_l2 + m_l2_it
+    # n_it = n_outer_it * n_l2 + n_l2_it
 
     acc = ct.zeros((m_prim, n_prim), dtype=ct.float32)
+
     for k_it in range(k_outer):
+        # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
         A_tile = ct.load(
             A, 
-            index=(c_it,m_it, k_it), 
-            shape=(1,m_prim,k_prim),
+            index=(c_it,m_outer_it,0,m_l2_it,0,k_it,0,0,0), 
+            shape=(1,1,1,1,1,1,m_prim,1,k_prim),
         ).reshape((m_prim, k_prim))
         B_tile = ct.load(
             B, 
-            index=(c_it, k_it, n_it), 
-            shape=(1,k_prim,n_prim),
+            index=(c_it,0,n_outer_it,0,n_l2_it,k_it,0,0,0), 
+            shape=(1,1,1,1,1,1,1,n_prim,k_prim),
         ).reshape((k_prim, n_prim))
         acc = ct.mma(A_tile, B_tile, acc=acc)
 
-    C_ = acc.astype(ct.float16).reshape((1, m_prim, n_prim))
-    ct.store(C, index=(c_it, m_it, n_it), tile=C_)
+    C_ = acc.astype(ct.float16).reshape((1,1,1,1,1,1,m_prim,n_prim,1))
+    ct.store(C, index=(c_it,m_outer_it,n_outer_it,m_l2_it,n_l2_it,0,0,0,0), tile=C_)
 
+@ct.kernel
+def baseline_multiply(A, B, C, m_prim: ct.Constant[int], n_prim: ct.Constant[int], k_prim: ct.Constant[int], k_outer: ct.Constant[int]):
+    c_it = ct.bid(0)
+    m_it = ct.bid(1)
+    n_it = ct.bid(2)
+
+    acc = ct.zeros((1,m_prim,n_prim), dtype=ct.float32)
+    for k_it in range(k_outer):
+        A_val = ct.load(A, index=(c_it, m_it, k_it), shape=(1,m_prim,k_prim))
+        B_val = ct.load(B, index=(c_it, k_it, n_it), shape=(1,k_prim,n_prim))
+        acc = ct.mma(A_val, B_val, acc=acc)
+
+    C_ = acc.astype(ct.float16)
+    ct.store(C, index=(c_it, m_it, n_it), tile=C_)
 if __name__ == "__main__":
     task_a_and_b()
-    task_c()
+    task_c_and_d()
