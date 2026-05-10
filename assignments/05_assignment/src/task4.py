@@ -26,7 +26,7 @@ def task_a_and_b():
     input_shapes = [(c, m, k), (c, k, n)]
     config = generate_config(einsum, input_shapes, "cmkn")
     file_dir = Path(__file__).parent
-    with open(file_dir / "task_4a.out", "w") as f:
+    with open(file_dir / "task4a.out", "w") as f:
         f.write(str(config))
 
     L2_cache_size = cp.cuda.Device().attributes["L2CacheSize"]
