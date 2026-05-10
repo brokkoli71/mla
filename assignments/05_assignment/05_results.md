@@ -116,7 +116,7 @@ Consider the batched matrix multiplication expressed as `cmk, ckn -> cmn` with d
 a) Use your `generate_config` function from Task 2 to produce the initial `Config` for this contraction. **Report** the resulting config.
 
 Output:
-```{literalinclude} src/task_4a.out
+```{literalinclude} src/task4a.out
 ```
 
 
@@ -153,12 +153,12 @@ Implement a cuTile kernel that computes `cmk, ckn -> cmn` following your optimiz
 d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cuTile/Torch) to measure the average kernel runtime. **Report** the achieved performance in TFLOPS.
 **Compare** the performance of your L2-optimized kernel to a baseline kernel that maps BIDs in plain row-major order over `(c, m, n)` without any splitting or permuting. **Report** your findings.
 
-```{literalinclude} src/task_4.py
+```{literalinclude} src/task4.py
 :language: python
 :pyobject: task_c_and_d
 ```
 
-```{literalinclude} src/task_4.py
+```{literalinclude} src/task4.py
 :language: python
 :pyobject: multiply
 ```
