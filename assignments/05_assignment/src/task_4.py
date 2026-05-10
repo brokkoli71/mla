@@ -67,65 +67,58 @@ def task_a_and_b():
     print(optimizer.config)
     
 def task_c_and_d():
+    c = 4
+    n = m = k = 4096
 
     # optimal config from b:
-    c = 4
-    m_outer = n_outer = 16
-    m_l2 = n_l2 = 4
-    k_outer = 32
     m_prim = n_prim = 64
     k_prim = 128
+    m_l2 = 16
+    n_l2 = 32
 
-    m = m_outer * m_l2 * m_prim
-    n = n_outer * n_l2 * n_prim
-    k = k_outer * k_prim
-    # A = torch.randn((c, m, k), device='cuda', dtype=torch.float16)
-    # B = torch.randn((c, k, n), device='cuda', dtype=torch.float16)
-    # C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
-    # expected = torch.einsum("cmk, ckn -> cmn", A, B)
+    k_outer = k // k_prim
+    m_outer = m // (m_l2 * m_prim)
+    n_outer = n // (n_l2 * n_prim)
 
-    # A = A.reshape((c, m_outer, m_l2, m_prim, k_outer, k_prim, 1, 1, 1)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
-    # print(A.shape)
-    # B = B.reshape((c, 1, 1, 1, k_outer, k_prim, n_outer, n_l2, n_prim)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
-    # C = torch.empty((c,m_outer,n_outer,m_l2,n_l2,1,m_prim,n_prim,1), device='cuda', dtype=torch.float16)
-    # expected = expected.reshape((c, m_outer, m_l2, m_prim, 1, 1, n_outer, n_l2, n_prim)).permute(0, 1, 6, 2, 7, 4, 3, 8, 5)
     # c,m_outer,n_outer,m_l2,n_l2,k_outer,m_prim,n_prim,k_prim
     A = torch.randn((c,m_outer,m_l2,k_outer,m_prim,k_prim), device='cuda', dtype=torch.float16)
     B = torch.randn((c,n_outer,n_l2,k_outer,n_prim,k_prim), device='cuda', dtype=torch.float16)
     C = torch.empty((c,m_outer,n_outer,m_l2,n_l2,m_prim,n_prim), device='cuda', dtype=torch.float16)
-    # my hope is, that the l2 tiles are executed on the same multiprocessor, which allows them to reuse data in the l2 cache.
+
     grid = (c, m_outer*n_outer, m_l2*n_l2)
     args = (A, B, C, n_outer, n_l2, m_prim, n_prim, k_prim, k_outer, m_l2)
     ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, multiply, args))
+    tflops = 2 * (n * m * k * c) / (ms / 1000) / (10**12)
     print(f"Execution time of optimized kernel: {ms:.2f} ms")
+    print(f"TFLOPS of optimized kernel: {tflops:.2f}")
 
     # permute to original shape
     A = A.permute(0, 1, 2, 4, 3, 5).reshape((c,m,k))
     B = B.permute(0, 3, 5, 1, 2, 4).reshape((c,k,n))
     C = C.permute(0, 1, 3, 5, 2, 4, 6).reshape((c,m,n))
-    # expected = torch.einsum("cMmKxk,cNnKyk->cMNmnxy", A, B) # uppercase=outer, lowercase=l2, x=m_prim, y=n_prim
     expected = torch.einsum("cmk, ckn -> cmn", A, B)
     assert torch.allclose(C, expected, atol=1e-1), "The result of c) is incorrect!"
 
-    # no sizzling
+    # no swizzling 
     C = torch.empty((c,m,n), device='cuda', dtype=torch.float16)
     args_baseline = (A, B, C, m_prim, n_prim, k_prim, k//k_prim)
     grid_baseline = (c, m//m_prim, n//n_prim)
     ms_baseline = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid_baseline, baseline_multiply, args_baseline))
     assert torch.allclose(C, expected, atol=1e-1), "The result of baseline is incorrect!"
-
+    tflops_baseline = 2 * (n * m * k * c) / (ms_baseline / 1000) / (10**12)
     print(f"Execution time of baseline kernel: {ms_baseline:.2f} ms")
+    print(f"TFLOPS of baseline kernel: {tflops_baseline:.2f}")
+    plot_results(tflops, tflops_baseline)
 
-    # max mma tile size according to lecture
-    m_prim = n_prim = 256
-    k_prim = 16
-    C = torch.empty((c, m, n), device='cuda', dtype=torch.float16)
-    args_baseline = (A, B, C, m_prim, n_prim, k_prim, k // k_prim)
-    grid_baseline = (c, m//m_prim, n//n_prim)
-    ms_baseline = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid_baseline, baseline_multiply, args_baseline))
-    assert torch.allclose(C, expected, atol=1e-0), "The result of baseline is incorrect!"
-
-    print(f"Execution time of baseline kernel with max mma size: {ms_baseline:.2f} ms")
+def plot_results(tflops_optimized, tflops_baseline):
+    import matplotlib.pyplot as plt
+    labels = ['Optimized Kernel', 'Baseline Kernel']
+    tflops = [tflops_optimized, tflops_baseline]
+    plt.bar(labels, tflops, color=['blue', 'orange'])
+    plt.ylabel('TFLOPS')
+    plt.title('TFLOPS of Optimized vs Baseline Kernel')
+    file_dir = Path(__file__).parent
+    plt.savefig(file_dir / 'task4_results.png')
 
 @ct.kernel
 def multiply(A, B, C, n_outer: ct.Constant[int], n_l2: ct.Constant[int], m_prim: ct.Constant[int], n_prim: ct.Constant[int], k_prim: ct.Constant[int], k_outer: ct.Constant[int], m_l2: ct.Constant[int]):
