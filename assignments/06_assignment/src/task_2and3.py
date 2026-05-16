@@ -48,4 +48,6 @@ if __name__ == "__main__":
     # with open(file_dir / "results" / "task2_config.out", "w") as f:
     #     f.write(str(config))
 
+    optimized_config = Optimizer.optimize(config)
+
 
