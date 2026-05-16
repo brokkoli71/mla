@@ -1,0 +1,10 @@
+Config(
+    data_type=DataType.FLOAT16,
+    prim_main=PrimType.GEMM,
+    prim_last=LastType.NONE,
+    prim_first=FirstType.ZERO,
+    dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.K: 2>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>, <DimType.N: 1>],
+    exec_types=[<ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>],
+    dim_sizes=[4, 3, 64, 64, 1536, 4, 1152],
+    strides=[[18874368, 6291456, 98304, 1536, 1, 0, 0], [0, 0, 294912, 4608, 0, 1152, 1], [21233664, 7077888, 0, 0, 4608, 1152, 1]]
+)

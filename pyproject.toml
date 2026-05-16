@@ -9,6 +9,7 @@ dependencies = [
     "cupy-cuda13x>=14.0.1",
     "matplotlib>=3.10.8",
     "numpy>=2.4.4",
+    "opt-einsum>=3.4.0",
     "torch>=2.11.0",
     "tqdm>=4.67.3",
 ]
