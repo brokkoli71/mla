@@ -17,48 +17,59 @@ sys.path.append(str(assignment_05_src))
 from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
-# Config(
-#     data_type=DataType.FLOAT16,
-#     prim_main=PrimType.GEMM,
-#     prim_last=LastType.NONE,
-#     prim_first=FirstType.ZERO,
-#     dim_types=[<DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>],
-#     exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
-#     dim_sizes=[12, 3, 12, 12, 4096, 128, 128],
-#     strides=[[6291456, 0, 128, 0, 1536, 1, 0], [0, 1536, 0, 128, 4608, 0, 1], [7077888, 1536, 589824, 128, 0, 4608, 1]]
-# )
-@ct.kernel
-def contraction(A, B, C,  n1: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
-    m2_i = ct.bid(0)
-    n2_i = ct.bid(1)
+#'acKx,bKy->abcyx'
+    # grid = (a *c, 4, 3 * 6 * 4 * 6) # m3, n3, n2 * n1 * m2 * m1
 
-    temp = ct.bid(2)
-    n1_i = temp % n1
-    m1_i = temp // n1
+    # ct.launch(
+    #     torch.cuda.current_stream(), 
+    #     grid, 
+    #     contraction, 
+    #     (tensor_acKx, tensor_bKy, C_m2n2n1n0m1m0, 6, 4, 6 ,K, 64, 64)
+    # )
+@ct.kernel
+def contraction(A, B, C, n1: ct.Constant[int], m2: ct.Constant[int], m1: ct.Constant[int], k: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int]):
     
-    acc = ct.zeros((m0, n0), dtype=ct.float32)
+    m3_i = ct.bid(0)  # Das ist (a * c) aus grid[0]
+    n3_i = ct.bid(1)  # Das ist die (4) aus grid[1]
+
+    # 2. Die verschmolzene Dimension (n2 * n1 * m2 * m1) abgreifen
+    bc_it = ct.bid(2) # Das ist (3 * 6 * 4 * 6) aus grid[2]
+    
+    # 3. Den 1D-Index in 4 Indizes auflösen (von innen nach außen abspalten)
+    # Reihenfolge in der Multiplikation: n2 * n1 * m2 * m1 -> m1 ist die innerste Dimension
+    m1_i = bc_it % m1
+    temp = bc_it // m1
+    
+    m2_i = temp % m2
+    temp = temp // m2
+    
+    n1_i = temp % n1
+    n2_i = temp // n1  
+    
+    acc = ct.zeros((x,y), dtype=ct.float32)
     
     for k_i in range(0, k, 128):
         A_ = ct.load(
             A, 
-            index=(m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
-            shape=(1,1,1,1,128,m0,1), 
+            index=(m3_i, m2_i, m1_i, 0, k_i), 
+            shape=(1,1,1,x,128),
             padding_mode=ct.PaddingMode.ZERO
         )
-        A_ = ct.reshape(A_, (128, m0))
-        A_ = ct.transpose(A_)
+        A_ = ct.reshape(A_, (x, 128))
         B_ = ct.load(
             B, 
-            index=(m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
-            shape=(1,1,1,1,128,1,n0), 
+            index=(n3_i, n2_i, n1_i, k_i, 0), 
+            shape=(1,1,1,128,y), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        B_ = ct.reshape(B_, (128, n0))
+        B_ = ct.reshape(B_, (128, y))
         acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)
-    acc = ct.reshape(acc, (1, 1, 1, 1, 1, m0, n0))
-    ct.store(C, index=(m2_i, n2_i, m1_i, n1_i, 0, 0, 0), tile=acc)
+    # abcyx (12, 4, 3, 6, 64, 4, 6, 64)
+    acc = ct.reshape(acc, (1,1,1,1,y,1,1,x))
+    ct.store(C, index=(m3_i, n3_i, n2_i, n1_i, 0, m2_i, m1_i, 0), tile=acc)
+
 
 
 if __name__ == "__main__":
@@ -72,6 +83,15 @@ if __name__ == "__main__":
 
     # Convert all tensors to torch tensors and move them to the GPU before calling `torch.einsum`. Run the contraction **twice**: once with `torch.float32` inputs and once with `torch.float16` inputs (cast the tensors before contracting).
     einsum_string = 'acspx,bspy->abcyx'
+    # M = acx  N = by  K = sp   C =
+
+    a = 4
+    c = 3
+    s = 64
+    p = 64
+    x = 1536
+    b = 4
+    y = 1152
 
     tensor_acspx_32 = tensor_acspx.to('cuda')
     tensor_bspy_32 = tensor_bspy.to('cuda')
@@ -79,77 +99,64 @@ if __name__ == "__main__":
     tensor_acspx_16 = tensor_acspx.to('cuda').to(torch.float16)
     tensor_bspy_16 = tensor_bspy.to('cuda').to(torch.float16)
 
-    config = generate_config(einsum_string, [tensor_acspx_16.shape, tensor_bspy_16.shape], dim_order=None)
-    file_dir = Path(__file__).parent
+    # A war (a, c, s, p, x) -> wird (a, c, K, x)
+    tensor_acKx = tensor_acspx_16.flatten(2, 3).flatten(0, 1).permute(0, 2, 1)
 
-    #print(config);
-    # with open(file_dir / "results" / "task2_config.out", "w") as f:
-    #     f.write(str(config))
-
-    opti = Optimizer(config)
-    opti.fuse_dims(5,6)
-    opti.fuse_dims(2,3)
-    opti.fuse_dims(0,1)
-    print(opti.config)
-    print(opti.make_executable())
-    opti.split_dim(1, outer_size=None, inner_size=128)
-    print(opti.make_executable())
-    opti.split_dim(3, outer_size=None, inner_size=128)
-    opti.split_dim(3, outer_size=None, inner_size=12)
-    print(opti.make_executable())
-    opti.permute_dims([0, 2, 1, 3, 6, 4, 5])
     
-    print(opti.config)
+    # B war (b, s, p, y) -> wird (b, K, y)
+    tensor_bKy = tensor_bspy_16.flatten(1, 2)
+
+    K = s * p
+
+    print(tensor_acKx.shape, tensor_bKy.shape)
+    tensor_acKx = tensor_acKx.unflatten(dim=1, sizes=( 24, 64)).unflatten(dim=1, sizes=( 4, 6)).contiguous()
+    tensor_bKy = tensor_bKy.unflatten(dim=2, sizes=( 18, 64)).permute(0, 2, 1, 3).unflatten(dim=1, sizes=( 3, 6)).contiguous()
+    print(tensor_acKx.shape, tensor_bKy.shape)
 
 
-    # 1. Prepare Tensor A
-    # tensor_acspx_16 is already in the correct physical memory layout.
-    # We just map it to the 9D layout required by the opti.config.
-    A_opt = torch.as_strided(
-        tensor_acspx_16, 
-        size=opti.config.dim_sizes, 
-        stride=opti.config.strides[0]
-    )
 
-    # 2. Prepare Tensor B
-    # The config expects contiguous layout (s, p, b, y).
-    tensor_spby = tensor_bspy_16.permute(1, 2, 0, 3).contiguous()
-    B_opt = torch.as_strided(
-        tensor_spby, 
-        size=opti.config.dim_sizes, 
-        stride=opti.config.strides[1]
-    )
+    #config = generate_config(einsum_string, [tensor_acspx_16.shape, tensor_bspy_16.shape], dim_order=None)
+    #print(config)
 
     # 3. Prepare Tensor C
-    # The config expects contiguous layout (a, c, x, b, y). 
+    # abcyx
     # Sizes: a=4, c=3, x=1536, b=4, y=1152
-    C_acxby = torch.empty((4, 3, 1536, 4, 1152), dtype=torch.float16, device='cuda')
-    C_opt = torch.as_strided(
-        C_acxby, 
-        size=opti.config.dim_sizes, 
-        stride=opti.config.strides[2]
-    )
+    # a*c = 12, n1=b=4, n2=y=1152
+    C_m2n2n1n0m1m0 = torch.empty((12, 4, 3, 6, 64, 4, 6, 64), dtype=torch.float16, device='cuda')
 
-    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3])
-    
+    grid = (a *c, 4, 3 * 6 * 4 * 6) # m3, n3, n2 * n1 * m2 * m1
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6])
+        (tensor_acKx, tensor_bKy, C_m2n2n1n0m1m0, 6, 4, 6 ,K, 64, 64)
     )
 
-    C_final = C_acxby.permute(0, 3, 1, 4, 2)
+    C_final = C_m2n2n1n0m1m0
+    
+    # print(C_final.shape)
+    # C_final = C_final.flatten(4,5).flatten(2,3)
+    # print(C_final.shape)
+    # C_final = C_final.unflatten(dim=0, sizes=(4, 3)).permute(0, 2, 1, 3, 4).contiguous()
+    # print(C_final.shape)
+    
+    print(C_final.shape)
+    C_final = C_final.flatten(5,6).flatten(2,3)
+    print(C_final.shape)
+    C_final = C_final.flatten(4,5).flatten(2,3)
+    print(C_final.shape)
+    C_final = C_final.unflatten(dim=0, sizes=(4, 3)).permute(0, 2, 1, 3, 4).contiguous()
+    print(C_final.shape)
+
 
     expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
     assert torch.allclose(C_final, expected, atol=2e-0), "The result is incorrect!"
-    
     print("The result is correct!")
 
     plot_tensor(
         C_final.to('cpu'),
-        path=file_dir / 'results' / 'try2_torch_16.png',
+        path=file_dir / 'results' / 'try4_torch_16.png',
         title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
     )
     
@@ -178,7 +185,7 @@ if __name__ == "__main__":
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6])
+        (tensor_acKx, tensor_bKy, C_m2n2n1n0m1m0, 6, 4, 6 ,K, 64, 64)
     ))
     
     tflops_opt = flops / (t_ms_opt / 1000) / (10**12)

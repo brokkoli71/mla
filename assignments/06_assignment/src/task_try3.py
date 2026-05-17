@@ -7,6 +7,7 @@ import sys
 import triton
 import cupy as cp
 import cuda.tile as ct
+from task_1 import plot_tensor
 
 file_dir = Path(__file__).parent
 assignment_05_src = (file_dir / '../../05_assignment/src').resolve()
@@ -74,6 +75,7 @@ if __name__ == "__main__":
 
     # Convert all tensors to torch tensors and move them to the GPU before calling `torch.einsum`. Run the contraction **twice**: once with `torch.float32` inputs and once with `torch.float16` inputs (cast the tensors before contracting).
     einsum_string = 'acspx,bspy->abcyx'
+    # M = acx  N = by  K = sp   C =
 
     tensor_acspx_32 = tensor_acspx.to('cuda')
     tensor_bspy_32 = tensor_bspy.to('cuda')
@@ -147,8 +149,14 @@ if __name__ == "__main__":
     C_final = C_acxby.permute(0, 3, 1, 4, 2)
 
     expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
-    assert torch.allclose(C_final, expected, atol=2e-0), "The result is incorrect!"
+    assert torch.allclose(C_final, expected, atol=1.5e-0), "The result is incorrect!"
     print("The result is correct!")
+
+    plot_tensor(
+        C_final.to('cpu'),
+        path=file_dir / 'results' / 'try3_torch_16.png',
+        title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
+    )
     
     # ----------------------------------------------------------------
     # Benchmark torch.einsum

@@ -7,6 +7,7 @@ import sys
 import triton
 import cupy as cp
 import cuda.tile as ct
+from task_1 import plot_tensor
 
 file_dir = Path(__file__).parent
 assignment_05_src = (file_dir / '../../05_assignment/src').resolve()
@@ -144,6 +145,12 @@ if __name__ == "__main__":
     expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
     assert torch.allclose(C_final, expected, atol=1e-0), "The result is incorrect!"
     print("The result is correct!")
+
+    plot_tensor(
+        C_final.to('cpu'),
+        path=file_dir / 'results' / 'task_2_3_4_torch_16.png',
+        title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
+    )
     
     # ----------------------------------------------------------------
     # Benchmark torch.einsum
