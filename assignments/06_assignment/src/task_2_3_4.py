@@ -151,19 +151,37 @@ if __name__ == "__main__":
     assert torch.allclose(C_final, expected, atol=1e-0), "The result is incorrect!"
     print("The result is correct!")
     
-    #Benchmark the kernel
-    t_ms = triton.testing.do_bench(lambda: torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16))   
-    tflops = 2 * (tensor_acspx_16.shape[0] * tensor_bspy_16.shape[0] * tensor_acspx_16.shape[2] * tensor_bspy_16.shape[2]) / (t_ms / 1000) / (10**12)
-    print(f"torch.einsum:")
-    print(f"Time: {t_ms:.2f} ms")
-    print(f"Execution time of torch einsum: {t_ms:.2f} ms")
-    print(f"TFLOPS of torch einsum: {tflops:.2f}")
-
+    # ----------------------------------------------------------------
+    # Benchmark torch.einsum
+    # ----------------------------------------------------------------
+    t_ms_torch = triton.testing.do_bench(lambda: torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16))   
     
-    t_ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, contraction, (tensor_acspx_16, tensor_bspy_16, C, k, l, x_padded, y_padded, z_padded, c)))    
-    print(f"Optimized kernel:")
-    print(f"Time: {t_ms:.2f} ms")
-    tflops = 2 * (tensor_acspx_16.shape[0] * tensor_bspy_16.shape[0] * tensor_acspx_16.shape[2] * tensor_bspy_16.shape[2]) / (t_ms / 1000) / (10**12)
-    print(f"Execution time of optimized kernel: {t_ms:.2f} ms")
-    print(f"TFLOPS of optimized kernel: {tflops:.2f}")
+    # Dimensionen auslesen für korrekte FLOP-Berechnung
+    a, c, s, p, x = tensor_acspx_16.shape
+    b, _, _, y = tensor_bspy_16.shape
+    
+    # Korrekte FLOP-Formel: 2 * (Produkt aller relevanten Dimensionen)
+    flops = 2 * (a * b * c * s * p * x * y)
+    
+    tflops_torch = flops / (t_ms_torch / 1000) / (10**12)
+    
+    print(f"torch.einsum:")
+    print(f"Execution time of torch einsum: {t_ms_torch:.2f} ms")
+    print(f"TFLOPS of torch einsum: {tflops_torch:.2f}")
+
+    # ----------------------------------------------------------------
+    # Benchmark optimized kernel
+    # ----------------------------------------------------------------
+    t_ms_opt = triton.testing.do_bench(lambda: ct.launch(
+        torch.cuda.current_stream(), 
+        grid, 
+        contraction, 
+        (A_opt, B_opt, C_opt, opt_config.dim_sizes[2], opt_config.dim_sizes[3], opt_config.dim_sizes[4], opt_config.dim_sizes[5], opt_config.dim_sizes[6], opt_config.dim_sizes[7], opt_config.dim_sizes[8])
+    ))
+    
+    tflops_opt = flops / (t_ms_opt / 1000) / (10**12)
+    
+    print(f"\nOptimized kernel:")
+    print(f"Execution time of optimized kernel: {t_ms_opt:.2f} ms")
+    print(f"TFLOPS of optimized kernel: {tflops_opt:.2f}")
 
