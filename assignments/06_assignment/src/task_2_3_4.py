@@ -16,7 +16,44 @@ sys.path.append(str(assignment_05_src))
 from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
+# dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>],
+# exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.SEQ: 0>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
+# dim_sizes=[4, 3, 4, 24, 36, 64, 64, 32, 64],
+# strides=[[18874368, 6291456, 0, 64, 0, 98304, 1, 0, 1536], [0, 0, 1152, 0, 32, 294912, 0, 1, 4608], [21233664, 7077888, 1152, 294912, 32, 0, 4608, 1, 0]]
+@ct.kernel
+def contraction(A, B, C, n2: ct.Constant[int], m1: ct.Constant[int], n1: ct.Constant[int], l: ct.Constant[int], m0: ct.Constant[int], n0: ct.Constant[int], k: ct.Constant[int]):
+    m3_i = ct.bid(0)
+    m2_i = ct.bid(1)
 
+    bc_it = ct.bid(2)
+    n1_i = bc_it % n1
+    temp = bc_it // n1
+    m1_i = temp % m1
+    n2_i = temp // m1
+
+    acc = ct.zeros((m0, n0), dtype=ct.float32)
+    
+    for l_i in range(l):
+        A_ = ct.load(
+            A, 
+            index=(m3_i, m2_i, n2_i, m1_i, n1_i, l_i, 0, 0, 0), 
+            shape=(1,1,1,1,1,1,m0,1,k), 
+            padding_mode=ct.PaddingMode.ZERO
+        )
+        A_ = ct.reshape(A_, (m0, k))
+        B_ = ct.load(
+            B, 
+            index=(m3_i, m2_i, n2_i, m1_i, n1_i, l_i, 0, 0, 0), 
+            shape=(1,1,1,1,1,1,1,n0,k), 
+            padding_mode=ct.PaddingMode.ZERO
+        )
+        B_ = ct.reshape(B_, (n0, k))
+        B_ = ct.transpose(B_)
+        acc += ct.matmul(A_, B_)
+
+    acc = ct.astype(acc, ct.float16)
+    acc = ct.reshape(acc, (1, 1, 1, 1, 1, 1, m0, n0, 1))
+    ct.store(C, index=(m3_i, m2_i, n2_i, m1_i, n1_i, 0, 0, 0, 0), tile=acc)
 
 
 
@@ -105,13 +142,14 @@ if __name__ == "__main__":
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opt_config.dim_sizes[5], opt_config.dim_sizes[6], opt_config.dim_sizes[7], opt_config.dim_sizes[8])
+        (A_opt, B_opt, C_opt, opt_config.dim_sizes[2], opt_config.dim_sizes[3], opt_config.dim_sizes[4], opt_config.dim_sizes[5], opt_config.dim_sizes[6], opt_config.dim_sizes[7], opt_config.dim_sizes[8])
     )
 
-    expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
-    assert torch.allclose(C, expected, atol=1e-0), "The result is incorrect!"
+    C_final = C_acxby.permute(0, 3, 1, 4, 2)
 
-    
+    expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
+    assert torch.allclose(C_final, expected, atol=1e-0), "The result is incorrect!"
+    print("The result is correct!")
     
     #Benchmark the kernel
     t_ms = triton.testing.do_bench(lambda: torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16))   
@@ -122,43 +160,10 @@ if __name__ == "__main__":
     print(f"TFLOPS of torch einsum: {tflops:.2f}")
 
     
-    # t_ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, contraction, (tensor_acspx_16, tensor_bspy_16, C, k, l, x_padded, y_padded, z_padded, c)))    
-    # print(f"Optimized kernel:")
-    # print(f"Time: {t_ms:.2f} ms")
-    #tflops = 2 * (tensor_acspx_16.shape[0] * tensor_bspy_16.shape[0] * tensor_acspx_16.shape[2] * tensor_bspy_16.shape[2]) / (t_ms / 1000) / (10**12)
-    # print(f"Execution time of optimized kernel: {t_ms:.2f} ms")
-    # print(f"TFLOPS of optimized kernel: {tflops:.2f}")
+    t_ms = triton.testing.do_bench(lambda: ct.launch(torch.cuda.current_stream(), grid, contraction, (tensor_acspx_16, tensor_bspy_16, C, k, l, x_padded, y_padded, z_padded, c)))    
+    print(f"Optimized kernel:")
+    print(f"Time: {t_ms:.2f} ms")
+    tflops = 2 * (tensor_acspx_16.shape[0] * tensor_bspy_16.shape[0] * tensor_acspx_16.shape[2] * tensor_bspy_16.shape[2]) / (t_ms / 1000) / (10**12)
+    print(f"Execution time of optimized kernel: {t_ms:.2f} ms")
+    print(f"TFLOPS of optimized kernel: {tflops:.2f}")
 
-
-
-@ct.kernel
-def contraction(A, B, C, l: ct.Constant[int], m: ct.Constant[int], n: ct.Constant[int], k: ct.Constant[int]):
-    e_it = ct.bid(0)
-    a_it = ct.bid(1)
-    bc_it = ct.bid(2)
-    b_it = bc_it // c
-    c_it = bc_it % c
-
-    acc = ct.zeros((x, z), dtype=ct.float32)
-    
-    for k_it in range(k):
-        for l_it in range(l):
-            A_ = ct.load(
-                A, 
-                index=(e_it,a_it,b_it,k_it,l_it,0,0), 
-                shape=(1,1,1,1,1,x,y), 
-                padding_mode=ct.PaddingMode.ZERO
-            )
-            A_ = ct.reshape(A_, (x, y))
-            B_ = ct.load(
-                B, 
-                index=(e_it,c_it,k_it,l_it,0,0), 
-                shape=(1,1,1,1,y,z), 
-                padding_mode=ct.PaddingMode.ZERO
-            )
-            B_ = ct.reshape(B_, (y, z))
-            acc += ct.matmul(A_, B_)
-
-    acc = ct.astype(acc, ct.float16)
-    acc = ct.reshape(acc, (1,1,1,1,x,z))
-    ct.store(C, index=(e_it,a_it,b_it,c_it,0,0), tile=acc)
