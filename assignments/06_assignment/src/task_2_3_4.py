@@ -97,9 +97,9 @@ if __name__ == "__main__":
 
     opti = Optimizer(config)
     print(opti.make_executable())
-    opti.split_dim(4, outer_size=None, inner_size=64)
+    opti.split_dim(4, outer_size=None, inner_size=128)
     print(opti.make_executable())
-    opti.split_dim(6, outer_size=None, inner_size=32)
+    opti.split_dim(6, outer_size=None, inner_size=128)
     print(opti.make_executable())
 
     opt_config = opti.make_executable()
