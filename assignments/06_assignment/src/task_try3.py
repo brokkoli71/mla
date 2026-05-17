@@ -21,43 +21,46 @@ from config import Config, DataType, PrimType, DimType, ExecType, generate_confi
 #     prim_main=PrimType.GEMM,
 #     prim_last=LastType.NONE,
 #     prim_first=FirstType.ZERO,
-#     dim_types=[<DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>],
-#     exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
-#     dim_sizes=[12, 3, 12, 12, 4096, 128, 128],
-#     strides=[[6291456, 0, 128, 0, 1536, 1, 0], [0, 1536, 0, 128, 4608, 0, 1], [7077888, 1536, 589824, 128, 0, 4608, 1]]
+#     dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>],
+#     exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
+#     dim_sizes=[12, 6, 18, 4, 4, 4096, 64, 64],
+#     strides=[[6291456, 256, 0, 64, 0, 1536, 1, 0], [0, 0, 256, 0, 64, 4608, 0, 1], [7077888, 1179648, 256, 294912, 64, 0, 4608, 1]]
 # )
 @ct.kernel
-def contraction(A, B, C,  n1: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
-    m2_i = ct.bid(0)
-    n2_i = ct.bid(1)
+def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
+    m3_i = ct.bid(0)
+    m2_i = ct.bid(1)
 
-    temp = ct.bid(2)
-    n1_i = temp % n1
-    m1_i = temp // n1
+    bc_it = ct.bid(2)
+    n1_i = bc_it % n1
+    temp = bc_it // n1
+    m1_i = temp % m1
+    n2_i = temp // m1
     
     acc = ct.zeros((m0, n0), dtype=ct.float32)
     
-    for k_i in range(0, k, 128):
+    for k_i in range(0, k, 64):
         A_ = ct.load(
             A, 
-            index=(m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
-            shape=(1,1,1,1,128,m0,1), 
+            index=(m3_i, m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
+            shape=(1,1,1,1,1,64,m0,1), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        A_ = ct.reshape(A_, (128, m0))
+        A_ = ct.reshape(A_, (64, m0))
         A_ = ct.transpose(A_)
         B_ = ct.load(
             B, 
-            index=(m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
-            shape=(1,1,1,1,128,1,n0), 
+            index=(m3_i, m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
+            shape=(1,1,1,1,1,64,1,n0), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        B_ = ct.reshape(B_, (128, n0))
+        B_ = ct.reshape(B_, (64, n0))
         acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)
-    acc = ct.reshape(acc, (1, 1, 1, 1, 1, m0, n0))
-    ct.store(C, index=(m2_i, n2_i, m1_i, n1_i, 0, 0, 0), tile=acc)
+    acc = ct.reshape(acc, (1,1,1,1,1,1,m0,n0))
+    ct.store(C, index=(m3_i, m2_i, n2_i, m1_i, n1_i, 0, 0, 0), tile=acc)
+
 
 
 if __name__ == "__main__":
@@ -89,14 +92,16 @@ if __name__ == "__main__":
     opti.fuse_dims(5,6)
     opti.fuse_dims(2,3)
     opti.fuse_dims(0,1)
-    print(opti.config)
+    #print(opti.config)
     print(opti.make_executable())
-    opti.split_dim(1, outer_size=None, inner_size=128)
+    opti.split_dim(1, outer_size=None, inner_size=64)
     print(opti.make_executable())
-    opti.split_dim(3, outer_size=None, inner_size=128)
-    opti.split_dim(3, outer_size=None, inner_size=12)
+    opti.split_dim(3, outer_size=None, inner_size=64)
     print(opti.make_executable())
-    opti.permute_dims([0, 2, 1, 3, 6, 4, 5])
+    opti.split_dim(1, outer_size=None, inner_size=4)
+    opti.split_dim(3, outer_size=None, inner_size=4)
+    print(opti.make_executable())
+    opti.permute_dims([0, 1, 3, 2, 4, 7, 5, 6])
     
     print(opti.config)
 
@@ -129,14 +134,14 @@ if __name__ == "__main__":
         stride=opti.config.strides[2]
     )
 
-    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3])
+    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3] * opti.config.dim_sizes[4])
     
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6])
+        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6], opti.config.dim_sizes[7])
     )
 
     C_final = C_acxby.permute(0, 3, 1, 4, 2)
@@ -170,7 +175,7 @@ if __name__ == "__main__":
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6])
+        (A_opt, B_opt, C_opt, opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6], opti.config.dim_sizes[7])
     ))
     
     tflops_opt = flops / (t_ms_opt / 1000) / (10**12)

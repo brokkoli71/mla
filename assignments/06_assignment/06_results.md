@@ -58,6 +58,7 @@ a) Call `generate_config` with the einsum string from Task 1 and the shapes of `
 
 b) **Report** the resulting config (all fields).
 
+```
 Config(
     data_type=DataType.FLOAT16,
     prim_main=PrimType.GEMM,
@@ -68,6 +69,7 @@ Config(
     dim_sizes=[4, 3, 64, 64, 1536, 4, 1152],
     strides=[[18874368, 6291456, 98304, 1536, 1, 0, 0], [0, 0, 294912, 4608, 0, 1152, 1], [21233664, 7077888, 0, 0, 4608, 1152, 1]]
 )
+```
 
 ---
 
@@ -76,6 +78,24 @@ Config(
 a) **Apply** optimizations to the configuration of Task 2 and ensure the config is valid and launchable. Optimize for performance.
 
 b) **Report** the final optimized config (all fields).
+
+```
+Config(
+    data_type=DataType.FLOAT16,
+    prim_main=PrimType.GEMM,
+    prim_last=LastType.NONE,
+    prim_first=FirstType.ZERO,
+    dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>],
+    exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
+    dim_sizes=[12, 6, 18, 4, 4, 4096, 64, 64],
+    strides=[[6291456, 256, 0, 64, 0, 1536, 1, 0], [0, 0, 256, 0, 64, 4608, 0, 1], [7077888, 1179648, 256, 294912, 64, 0, 4608, 1]]
+)
+```
+
+```{literalinclude} src/task_try3.py
+:language: python
+:lines: 91-104
+```
 
 ---
 
@@ -87,8 +107,28 @@ b) **Verify** correctness by comparing the kernel output against the `torch.eins
 
 c) Use `triton.testing.do_bench` to measure the average kernel runtime. **Compute** and **report** the achieved performance in TFLOPS.
 
----
+Try1: TFLOPS kernel: 12.11
 
-## Optional Task
+Try2: TFLOPS kernel: 40.80
 
-Optimize your kernel so that its performance is higher than `torch.einsum()`.
+Try3:
+```
+The result is correct!
+torch.einsum:
+Execution time of torch einsum: 11.46 ms
+TFLOPS of torch einsum: 60.73
+
+Optimized kernel:
+Execution time of optimized kernel: 10.30 ms
+TFLOPS of optimized kernel: 67.57
+```
+
+```{literalinclude} src/task_try3.py
+:language: python
+:lines: 109-159
+```
+
+```{literalinclude} src/task_try3.py
+:language: python
+:pyobject: contraction
+```
