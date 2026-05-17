@@ -16,6 +16,7 @@ sys.path.append(str(assignment_05_src))
 from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
+
 @ct.kernel
 def contraction(A, B, C, n2: ct.Constant[int], m1: ct.Constant[int], n1: ct.Constant[int], l: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
     m3_i = ct.bid(0)
@@ -70,6 +71,7 @@ if __name__ == "__main__":
     
     tensor_acspx_16 = tensor_acspx.to('cuda').to(torch.float16)
     tensor_bspy_16 = tensor_bspy.to('cuda').to(torch.float16)
+    #C = torch.empty(tensor_acspx_16.shape[0], tensor_bspy_16.shape[0], tensor_acspx_16.shape[2], tensor_bspy_16.shape[2], device='cuda', dtype=torch.float16)
 
     config = generate_config(einsum_string, [tensor_acspx_16.shape, tensor_bspy_16.shape], dim_order=None)
     file_dir = Path(__file__).parent
@@ -91,12 +93,18 @@ if __name__ == "__main__":
     # print(opti.make_executable())
 
     opti = Optimizer(config)
+    print(opti.config)
+    opti.fuse_dims(5,6)
+    opti.fuse_dims(2,3)
+    opti.fuse_dims(0,1)
+    print(opti.config)
     print(opti.make_executable())
-    opti.split_dim(4, outer_size=None, inner_size=128)
+    opti.split_dim(1, outer_size=None, inner_size=128)
     print(opti.make_executable())
-    opti.split_dim(6, outer_size=None, inner_size=128)
-    opti.make_executable()
-    opti.permute_dims([0, 1, 2, 3, 4, 5, 8, 6, 7])
+    opti.split_dim(3, outer_size=None, inner_size=128)
+    opti.split_dim(3, outer_size=None, inner_size=12)
+    print(opti.make_executable())
+    opti.permute_dims([0, 2, 1, 3, 6, 4, 5])
     
     print(opti.config)
 
@@ -129,14 +137,14 @@ if __name__ == "__main__":
         stride=opti.config.strides[2]
     )
 
-    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3] * opti.config.dim_sizes[4])
+    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3])
     
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, opti.config.dim_sizes[2], opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6], opti.config.dim_sizes[7], opti.config.dim_sizes[8])
+        (A_opt, B_opt, C_opt, opti.config.dim_sizes[2], opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6])
     )
 
     C_final = C_acxby.permute(0, 3, 1, 4, 2)
