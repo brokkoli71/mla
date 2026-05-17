@@ -40,10 +40,10 @@ acspx, bspy -> abcyx
 
 c) **Visualize** both results side-by-side by calling the `plot_tensor()` helper provided in `src/main.py`. Save the fp32 result to `results/torch_32.png` and the fp16 result to `results/torch_16.png`. **Report** if you see any visible differences between the two images.
 
-FP16 Image:
+FP32 Image:
 ![alt text](../../assignments/06_assignment/src/results/torch_32.png)
 
-FP32 Image:
+FP16 Image:
 ![alt text](../../assignments/06_assignment/src/results/torch_16.png)
 
 I see a minor visible difference. The FP16 imgage is a bit blurrier.
@@ -125,7 +125,7 @@ TFLOPS of optimized kernel: 67.57
 
 ```{literalinclude} src/task_try3.py
 :language: python
-:lines: 109-159
+:lines: 109-151
 ```
 
 ```{literalinclude} src/task_try3.py
