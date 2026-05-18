@@ -28,7 +28,7 @@ from config import Config, DataType, PrimType, DimType, ExecType, generate_confi
 #     strides=[[6291456, 256, 0, 64, 0, 1536, 1, 0], [0, 0, 256, 0, 64, 4608, 0, 1], [7077888, 1179648, 256, 294912, 64, 0, 4608, 1]]
 # )
 @ct.kernel
-def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
+def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Constant[int], m0: ct.Constant[int], n0: ct.Constant[int]):
     m3_i = ct.bid(0)
     m2_i = ct.bid(1)
 

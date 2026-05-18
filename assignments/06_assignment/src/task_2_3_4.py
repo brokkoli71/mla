@@ -18,7 +18,7 @@ from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
 @ct.kernel
-def contraction(A, B, C, n2: ct.Constant[int], m1: ct.Constant[int], n1: ct.Constant[int], l: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int], m0: ct.Constant[int]):
+def contraction(A, B, C, n2: ct.Constant[int], m1: ct.Constant[int], n1: ct.Constant[int], l: ct.Constant[int], k: ct.Constant[int], m0: ct.Constant[int], n0: ct.Constant[int]):
     m3_i = ct.bid(0)
     m2_i = ct.bid(1)
 
