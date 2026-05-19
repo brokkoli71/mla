@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     plot_tensor(
         C_final.to('cpu'),
-        path=file_dir / 'results' / 'try6_torch_16.png',
+        path=file_dir / 'results' / 'task_try6_torch_16.png',
         title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
     )
     
