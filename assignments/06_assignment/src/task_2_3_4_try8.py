@@ -18,53 +18,37 @@ from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
 @ct.kernel
-def contraction(A, B, C, 
-                m5: ct.Constant[int], m4: ct.Constant[int], 
-                n3: ct.Constant[int], m2: ct.Constant[int], n2: ct.Constant[int], 
-                m1: ct.Constant[int], n1: ct.Constant[int], 
-                m0: ct.Constant[int], k: ct.Constant[int], n0: ct.Constant[int]):
+def contraction(A, B, C, n1: ct.Constant[int], m1: ct.Constant[int], l: ct.Constant[int], k: ct.Constant[int], m0: ct.Constant[int], n0: ct.Constant[int]):
+    m2_i = ct.bid(0)
+    n2_i = ct.bid(1)
 
-    # 1. Block ID 0: m5 * m4
-    bid_0 = ct.bid(0)
-    m4_i = bid_0 % m4
-    m5_i = bid_0 // m4
-
-    # 2. Block ID 1: n3 * m2 * n2
-    bid_1 = ct.bid(1)
-    n2_i = bid_1 % n2
-    temp1 = bid_1 // n2
-    m2_i = temp1 % m2
-    n3_i = temp1 // m2
-
-    # 3. Block ID 2: m1 * n1
-    bid_2 = ct.bid(2)
-    n1_i = bid_2 % n1
-    m1_i = bid_2 // n1
+    bc_it = ct.bid(2)
+    m1_i = bc_it % m1
+    n1_i = bc_it // m1
 
     acc = ct.zeros((m0, n0), dtype=ct.float32)
-
-    k_t = 64
     
-    for k_i in range(0, k, k_t):
+    for l_i in range(l):
         A_ = ct.load(
             A, 
-            index=(m5_i, m4_i, n3_i, m2_i, n2_i, m1_i, n1_i, 0, k_i, 0), 
-            shape=(1, 1, 1, 1, 1, 1, 1, m0, k_t, 1), 
+            index=(m2_i, n2_i, n1_i, m1_i, l_i, 0, 0, 0), 
+            shape=(1,1,1,1,1,k,m0,1), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        A_ = ct.reshape(A_, (m0, k_t))
+        A_ = ct.reshape(A_, (k, m0))
+        A_ = ct.transpose(A_)
         B_ = ct.load(
             B, 
-            index=(m5_i, m4_i, n3_i, m2_i, n2_i, m1_i, n1_i, 0, k_i, 0), 
-            shape=(1, 1, 1, 1, 1, 1, 1, 1, k_t, n0), 
+            index=(m2_i, n2_i, n1_i, m1_i, l_i, 0, 0, 0), 
+            shape=(1,1,1,1,1,k,1,n0), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        B_ = ct.reshape(B_, (k_t, n0))
+        B_ = ct.reshape(B_, (k, n0))
         acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)
-    acc = ct.reshape(acc, (1, 1, 1, 1, 1, 1, 1, m0, 1, n0))
-    ct.store(C, index=(m5_i, m4_i, n3_i, m2_i, n2_i, m1_i, n1_i, 0, 0, 0), tile=acc)
+    acc = ct.reshape(acc, (1, 1, 1, 1, 1, 1, m0, n0))
+    ct.store(C, index=(m2_i, n2_i, n1_i, m1_i, 0, 0, 0, 0), tile=acc)
 
 
 
@@ -89,21 +73,33 @@ if __name__ == "__main__":
     config = generate_config(einsum_string, [tensor_acspx_16.shape, tensor_bspy_16.shape], dim_order=None)
     file_dir = Path(__file__).parent
 
+    #print(config);
+    # with open(file_dir / "results" / "task2_config.out", "w") as f:
+    #     f.write(str(config))
 
-# wir try 3 nur m, k, n
+
+    ## first try maximixe tile size 128y128x128
+    # opti = Optimizer(config)
+    # opti.fuse_dims(2,3)
+    # opti.split_dim(2, outer_size=None, inner_size=128)
+    # #print(opti.config)
+    # print(opti.make_executable())
+    # opti.split_dim(4 , outer_size=None, inner_size=128)
+    # print(opti.make_executable())
+    # opti.split_dim(6 , outer_size=None, inner_size=128)
+    # print(opti.make_executable())
 
     opti = Optimizer(config)
     print(opti.config)
-    opti.fuse_dims(2,3)
+    opti.fuse_dims(5,6)
+    opti.fuse_dims(0,1)
     print(opti.make_executable())
-    opti.split_dim(4, outer_size=None, inner_size=64)
+    opti.split_dim(3, outer_size=None, inner_size=128)
     print(opti.make_executable())
-    opti.split_dim(4, outer_size=None, inner_size=64)
-    opti.make_executable()
-    opti.split_dim(4, outer_size=None, inner_size=6)
-    opti.split_dim(3, outer_size=None, inner_size=6)
-    opti.make_executable()
-    opti.permute_dims([0, 1, 2, 3, 5, 4, 6, 7, 9, 8])
+    opti.split_dim(3, outer_size=None, inner_size=128)
+    print(opti.make_executable())
+    opti.permute_dims([0, 1, 2, 3, 6, 4, 5])
+    opti.split_dim(1, outer_size=None, inner_size=12)
     
     print(opti.config)
 
@@ -136,32 +132,25 @@ if __name__ == "__main__":
         stride=opti.config.strides[2]
     )
 
-    grid = (
-        opti.config.dim_sizes[0] * opti.config.dim_sizes[1],                           # bid(0): m5 und m4
-        opti.config.dim_sizes[2] * opti.config.dim_sizes[3] * opti.config.dim_sizes[4], # bid(1): n3, m2, n2
-        opti.config.dim_sizes[5] * opti.config.dim_sizes[6]                            # bid(2): m1, n1
-    )
+    grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3])
+    
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, 
-         opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2], 
-         opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], 
-         opti.config.dim_sizes[6], opti.config.dim_sizes[7], opti.config.dim_sizes[8], 
-         opti.config.dim_sizes[9])
+        (A_opt, B_opt, C_opt, opti.config.dim_sizes[2], opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6], opti.config.dim_sizes[7])
     )
 
     C_final = C_acxby.permute(0, 3, 1, 4, 2)
 
     expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
-    assert torch.allclose(C_final, expected, atol=2e-0), "The result is incorrect!"
+    assert torch.allclose(C_final, expected, atol=1e-0), "The result is incorrect!"
     print("The result is correct!")
 
     plot_tensor(
         C_final.to('cpu'),
-        path=file_dir / 'results' / 'task_try6_torch_16.png',
+        path=file_dir / 'results' / 'task_2_3_4_try8_torch_16.png',
         title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
     )
     
@@ -190,11 +179,7 @@ if __name__ == "__main__":
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (A_opt, B_opt, C_opt, 
-         opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2], 
-         opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], 
-         opti.config.dim_sizes[6], opti.config.dim_sizes[7], opti.config.dim_sizes[8], 
-         opti.config.dim_sizes[9])
+        (A_opt, B_opt, C_opt, opti.config.dim_sizes[2], opti.config.dim_sizes[3], opti.config.dim_sizes[4], opti.config.dim_sizes[5], opti.config.dim_sizes[6], opti.config.dim_sizes[7])
     ))
     
     tflops_opt = flops / (t_ms_opt / 1000) / (10**12)
