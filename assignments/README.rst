@@ -28,6 +28,9 @@ Assignments
    * - 06
      - Multi-Input Einsum Contraction
      - 05/18
+   * - 07
+     - Inferring the VLIW ISA of XDNA2
+     - 05/25
 
 ----
 
