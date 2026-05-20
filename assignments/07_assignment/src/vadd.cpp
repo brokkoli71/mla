@@ -14,7 +14,7 @@ inline static void vadd_template( T_in const * __restrict ptr_in0,
   v_in1 = aie::load_v<r>(ptr_in1);
 
   // element-wise addition using the AIE-API
-  // v_out = 
+  v_out = aie::add(v_in0, v_in1);
 
   // store data
   aie::store_v(ptr_out, v_out);

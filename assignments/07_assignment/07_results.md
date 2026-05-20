@@ -24,7 +24,7 @@ The file `src/vadd.cpp` contains the function `vadd`, which operates on two 64-e
 
 2. **Compile** the function to assembly:
 
-```assignments/07_assignment/build
+```
 make asm_vadd   # → build/vadd.s
 ```
 

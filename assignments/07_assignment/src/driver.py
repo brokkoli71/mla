@@ -28,9 +28,10 @@ def verify(kernel: str, in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor)
     out : bfloat16 torch tensor
     """
 
-    # TODO: implement verify() for both kernels.
-
-    raise NotImplementedError("verify() not yet implemented")
+    if kernel == "vadd":
+        assert torch.equal(in0 + in1, out)
+    else:
+        raise NotImplementedError()
 
 
 def run(kernel_name: str) -> None:
