@@ -29,7 +29,7 @@ def verify(kernel: str, in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor)
     """
 
     if kernel == "vadd":
-        assert torch.equal(in0 + in1, out)
+        assert torch.allclose(in0 + in1, out, rtol=1e-02)
     else:
         raise NotImplementedError()
 

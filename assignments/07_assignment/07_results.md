@@ -35,7 +35,9 @@ make run_vadd   # builds xclbin for BF16 vadd and invokes driver.py
 ```
 
 **Question:** What is the mnemonic used for the BF16 element-wise addition? (Inspect `build/vadd.s`.)
-
+```
+vadd.f
+```
 ---
 
 ## Task 2 — Identify VLIW Slots
