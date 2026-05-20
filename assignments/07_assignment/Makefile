@@ -2,7 +2,8 @@ MLIR_AIE_DIR ?= $(shell python3 -c "from aie.utils.config import root_path; prin
 AIE_INC      := $(MLIR_AIE_DIR)/include
 
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
-KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
+WARNING_FLAGS = -Wno-parentheses -Wno-attributes -Wno-macro-redefined -Wno-empty-body -Wno-missing-template-arg-list-after-template-kw
+KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf ${WARNING_FLAGS} -I $(AIE_INC)
 
 .PHONY: all asm_vadd asm_matmul asm_matmul_bfp16 \
         obj_vadd obj_custom_vadd run_vadd run_custom_vadd clean
@@ -29,12 +30,12 @@ build/matmul_bfp16.s: src/matmul.cpp | build/
 obj_vadd: build/vadd.o
 
 build/vadd.o: src/vadd.cpp | build/
-	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+	$(PEANO_CC) $(KERNEL_FLAGS) -c $< -o $@
 
 obj_custom_vadd: build/custom_vadd.o
 
 build/custom_vadd.o: src/custom_vadd.s | build/
-	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+	$(PEANO_CC) $(KERNEL_FLAGS)-c $< -o $@
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
 
