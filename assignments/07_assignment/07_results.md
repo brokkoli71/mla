@@ -77,27 +77,27 @@ Inspect the instructions and **fill in** the table.
 
 | Instruction                          | Slot | Short description (optional) |
 |--------------------------------------|------|------------------------------|
-| `vlda.conv.fp32.bf16 cml0, [p0, #0]` |      |                              |
-| `movx r6, #1`                        |      |                              |
-| `vldb x1, [p1, #0]`                  |      |                              |
-| `vmov bmhl2, bmhh4`                  |      |                              |
-| `mova r0, #60`                       |      |                              |
-| `vadd.f dm0, dm0, dm1, r0`           |      |                              |
-| `ret lr`                             |      |                              |
-| `mov p1, p4`                         |      |                              |
-| `vst.conv.bf16.fp32 cml0, [p2, #0]`  |      |                              |
+| `vlda.conv.fp32.bf16 cml0, [p0, #0]` | A    | load p0 into cml0 (fp32 to bf16)|
+| `movx r6, #1`                        | X    | write 1 to register 6        |
+| `vldb x1, [p1, #0]`                  | B    | load p1 to vector register 1 |
+| `vmov bmhl2, bmhh4`                  | V    | move bmhh4 to bmhl2          |
+| `mova r0, #60`                       | M    | Write 60 to register 0       |
+| `vadd.f dm0, dm0, dm1, r0`           | V    | add dm1 onto dm0 (60 is configuration) |
+| `ret lr`                             | none?|     return                   |
+| `mov p1, p4`                         | M    |     move p4 to p1            |
+| `vst.conv.bf16.fp32 cml0, [p2, #0]`  | S    |    store cml0 to p2          |
 
 2. **Fill in** the register-class table:
 
 | Slot | Register classes (dst / src) | Example registers |
 |------|------------------------------|-------------------|
-| V    |                              |                   |
-| A    |                              |                   |
-| B    |                              |                   |
-| S    |                              |                   |
-| X    |                              |                   |
-| M    |                              |                   |
-| XM   |                              |                   |
+| V    |  dm,cm,bm                    | dm0               |
+| A    |  from p to dm,cm,bm,x,y      | p0                |
+| B    |  from p to x,y               | p0                |
+| S    |  from dm,cm,bm,x,y to p      | dm0               |
+| X    |  x,y                         | x1                |
+| M    |  p,r                         | r0                |
+| XM   |  x,y,p,r                     | x1                |
 
 ---
 
