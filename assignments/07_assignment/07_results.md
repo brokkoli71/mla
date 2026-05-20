@@ -35,7 +35,7 @@ make run_vadd   # builds xclbin for BF16 vadd and invokes driver.py
 ```
 
 **Question:** What is the mnemonic used for the BF16 element-wise addition? (Inspect `build/vadd.s`.)
-```
+```asm
 vadd.f
 ```
 ---
@@ -54,14 +54,16 @@ vlda.conv.fp32.bf16 cmh0, [p0, #64]; nopx
 
 Inspect the instructions and **fill in** the table.
 
+(erklärung: occupied -> hat eine anweisung e.g. vlda, nop)
+
 | Functional Unit     | Slot   | NOP mnemonic | Occupied in the second instruction? |
 |---------------------|--------|--------------|-------------------------------------|
-| Vector Unit         | V      |              |                                     |
-| Load Unit A         | A      | nopa         |                                     |
-| Load Unit B         | B      |              |                                     |
-| Store Unit          | S      |              |                                     |
-| Scalar/Control Unit | X (XM) |              |                                     |
-| Movement Unit       | M (XM) |              |                                     |
+| Vector Unit         | V      | nopv         |   no                                |
+| Load Unit A         | A      | nopa         |     yes                             |
+| Load Unit B         | B      | nopb         |     no                              |
+| Store Unit          | S      | nops         |       no                            |
+| Scalar/Control Unit | X (XM) | nopx         |      yes                            |
+| Movement Unit       | M (XM) | nopm         |       no                            |
 
 ---
 
