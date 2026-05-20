@@ -4,3 +4,4 @@ local_notes
 docs/build
 scripts
 *.pyc
+*/build
