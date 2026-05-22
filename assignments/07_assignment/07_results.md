@@ -143,12 +143,12 @@ The target must assemble without errors.
 ```
 make run_custom_vadd     # builds xclbin for BF16 custom_vadd and invokes driver.py
 ```
-**Question:**
+**Question:**d
 How many VLIW cycles does your hand-scheduled kernel take?
 Is this the fewest possible number of cycles?
 
 - We load B before A, then we can start the addition of B to itself as soon as B is loaded, without waiting for A to be loaded. 
-
+- Storing the result can be done in the last delay slot of the return instruction -> less nops before `ret lr`
 
 ```{literalinclude} src/custom_vadd.s
 :language: asm
