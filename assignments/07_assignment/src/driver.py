@@ -30,6 +30,8 @@ def verify(kernel: str, in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor)
 
     if kernel == "vadd":
         assert torch.allclose(in0 + in1, out, rtol=1e-02)
+    elif kernel == "custom_vadd":
+        assert torch.allclose(in0 + in1 + in1, out, rtol=1e-02)
     else:
         raise NotImplementedError()
 

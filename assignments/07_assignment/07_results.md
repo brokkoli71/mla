@@ -113,8 +113,8 @@ Using `build/vadd.s`, **fill in** the latency table:
 
 | Instruction | Output register | First dependent instruction | Cycles apart | Latency |
 |-------------|-----------------|-----------------------------|:------------:|:-------:|
-| `mova`      |                 |                             |              |         |
-| `vadd.f`    |                 |                             |              |         |
+| `mova`      | r0              | vadd.f                      | 1            | 1       |
+| `vadd.f`    | dm0             |(none? dm0 will not be read?)| ?            | ?       |
 
 ---
 
@@ -144,6 +144,7 @@ The target must assemble without errors.
 make run_custom_vadd     # builds xclbin for BF16 custom_vadd and invokes driver.py
 ```
 
+TODO: can we remove some nops?
 **Question:**
 How many VLIW cycles does your hand-scheduled kernel take?
 Is this the fewest possible number of cycles?
