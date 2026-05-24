@@ -76,11 +76,15 @@ if __name__ == "__main__":
     file_dir = Path(__file__).parent
 
     # A war (a, c, s, p, x) -> wird (a, c, K, x)
-    tensor_acspx_16 = tensor_acspx_16.flatten(2, 3).contiguous()
+    tensor_acspx_16 = tensor_acspx_16.flatten(2, 3)
+    tensor_acKx_16 = torch.tensor(tensor_acspx_16) # (a, c, K, x)
+
 
     
     # B war (b, s, p, y) -> wird (b, K, y)
-    tensor_bspy_16 = tensor_bspy_16.flatten(1, 2).contiguous()
+    tensor_bspy_16 = tensor_bspy_16.flatten(1, 2)
+    tensor_bKy_16 = torch.tensor(tensor_bspy_16) # (b, K, y)
+
 
     einsum_string = "ackx,bky->abcyx"
 
@@ -142,12 +146,12 @@ if __name__ == "__main__":
 
     C_final = C_acxby.permute(0, 3, 1, 4, 2)
 
-    expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
+    expected = torch.einsum(einsum_string, tensor_acKx_16, tensor_bKy_16)
     assert torch.allclose(C_final, expected, atol=2e-0), "The result is incorrect!"
     print("The result is correct!")
 
     plot_tensor(
-        C_final.to('cpu'),
+        expected.to('cpu'),
         path=file_dir / 'results' / 'expected_fusedK_torch_16.png',
         title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
     )
@@ -161,7 +165,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------
     # Benchmark torch.einsum
     # ----------------------------------------------------------------
-    t_ms_torch = triton.testing.do_bench(lambda: torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16))   
+    t_ms_torch = triton.testing.do_bench(lambda: torch.einsum(einsum_string, tensor_acKx_16, tensor_bKy_16))   
     
     # Dimensionen auslesen für korrekte FLOP-Berechnung
     a, c, k, x = tensor_acspx_16.shape

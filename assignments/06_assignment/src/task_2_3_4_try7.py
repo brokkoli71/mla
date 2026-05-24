@@ -30,13 +30,13 @@ def contraction(A, B, C, n2: ct.Constant[int], m1: ct.Constant[int], n1: ct.Cons
 
     acc = ct.zeros((m0, n0), dtype=ct.float32)
 
-    l_t = 2 
+    l_t = 1
     
-    for l_i in range(0,l,l_t):
+    for l_i in range(64):
         A_ = ct.load(
             A, 
             index=(m3_i, m2_i, n2_i, m1_i, n1_i, 0, l_i, 0, 0), 
-            shape=(1,1,1,1,1,m0,l_t,k,1), 
+            shape=(1,1,1,1,1,m0,l_t,k,1),
             padding_mode=ct.PaddingMode.ZERO
         )
         A_ = ct.reshape(A_, (m0, k *l_t))

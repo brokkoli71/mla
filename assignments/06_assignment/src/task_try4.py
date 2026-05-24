@@ -48,21 +48,21 @@ def contraction(A, B, C, n1: ct.Constant[int], m2: ct.Constant[int], m1: ct.Cons
     
     acc = ct.zeros((x,y), dtype=ct.float32)
     
-    for k_i in range(0, k, 128):
+    for k_i in range(64):
         A_ = ct.load(
             A, 
             index=(m3_i, m2_i, m1_i, 0, k_i), 
-            shape=(1,1,1,x,128),
+            shape=(1,1,1,x,64),
             padding_mode=ct.PaddingMode.ZERO
         )
-        A_ = ct.reshape(A_, (x, 128))
+        A_ = ct.reshape(A_, (x, 64))
         B_ = ct.load(
             B, 
             index=(n3_i, n2_i, n1_i, k_i, 0), 
-            shape=(1,1,1,128,y), 
+            shape=(1,1,1,64,y), 
             padding_mode=ct.PaddingMode.ZERO
         )
-        B_ = ct.reshape(B_, (128, y))
+        B_ = ct.reshape(B_, (64, y))
         acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)

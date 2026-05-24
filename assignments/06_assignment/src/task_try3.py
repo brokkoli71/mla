@@ -40,7 +40,7 @@ def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Const
     
     acc = ct.zeros((m0, n0), dtype=ct.float32)
     
-    for k_i in range(0, k, 64):
+    for k_i in range(64):
         A_ = ct.load(
             A, 
             index=(m3_i, m2_i, n2_i, m1_i, n1_i, k_i, 0, 0), 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     grid = (opti.config.dim_sizes[0], opti.config.dim_sizes[1], opti.config.dim_sizes[2] * opti.config.dim_sizes[3] * opti.config.dim_sizes[4])
     
-
+    print((opti.config.dim_sizes[0]* opti.config.dim_sizes[1]* opti.config.dim_sizes[2] * opti.config.dim_sizes[3] * opti.config.dim_sizes[4]))
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 

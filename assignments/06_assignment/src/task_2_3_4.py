@@ -110,6 +110,7 @@ if __name__ == "__main__":
         size=opti.config.dim_sizes, 
         stride=opti.config.strides[0]
     )
+#    einsum_string = 'acspx,bspy->abcyx'
 
     # 2. Prepare Tensor B
     # The config expects contiguous layout (s, p, b, y).
