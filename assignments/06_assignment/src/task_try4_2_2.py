@@ -22,18 +22,33 @@ from config import Config, DataType, PrimType, DimType, ExecType, generate_confi
 @ct.kernel
 def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int]):
     
-    m2_i = ct.bid(0) 
+    m2_i = ct.bid(2) 
     n2_i = ct.bid(1)  
 
-    swizzle = ct.bid(2)     
+    swizzle = ct.bid(0)     
     m1_i = swizzle % n1 
     n1_i = swizzle // n1    
 
+    #    grid = (6*6*6*24,1,1)
+
+    # temp = ct.bid(0)
+
+    # n1_i = temp % 6
+    # temp = temp // 6
+
+    # m1_i = temp % 6
+    # temp = temp // 6
+
+    # n2_i = temp % 6
+    # m2_i = temp // 24
+
+
+
     acc = ct.zeros((x,y), dtype=ct.float32)
     
-    k_t = 128
+    k_t = 16
 
-    for k_i in range(32):
+    for k_i in range(256):
         A_ = ct.load(
             A, 
             index=(m2_i, m1_i, 0, k_i), 
@@ -41,6 +56,7 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
             padding_mode=ct.PaddingMode.ZERO
         )
         A_ = ct.reshape(A_, (x, k_t))
+        #A_ = ct.transpose(A_)
         B_ = ct.load(
             B, 
             index=(n2_i, n1_i, k_i, 0), 
@@ -48,6 +64,7 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
             padding_mode=ct.PaddingMode.ZERO
         )
         B_ = ct.reshape(B_, (k_t, y))
+        #B_ = ct.transpose(B_)
         acc += ct.matmul(A_, B_)
 
     acc = ct.astype(acc, ct.float16)
@@ -91,17 +108,18 @@ if __name__ == "__main__":
 
     
     # B war (b, s, p, y) -> wird (b, K, y)
-    tensor_bKy = tensor_bspy_16.flatten(1, 2)
+    tensor_bKy = tensor_bspy_16.flatten(1, 2).permute(0,2,1).flatten(0,1)
 
     K = s * p
 
     print(tensor_acKx.shape, tensor_bKy.shape)
-    tensor_acKx = tensor_acKx.unflatten(dim=1, sizes=( 24, 64)).flatten(0,1)
-    tensor_bKy = tensor_bKy.unflatten(dim=2, sizes=( 18, 64)).permute(0, 2, 1, 3).flatten(0,1)
+    tensor_acKx = tensor_acKx.unflatten(dim=1, sizes=( 12, 128)).flatten(0,1)
+    tensor_bKy = tensor_bKy.unflatten(dim=0, sizes=( -1, 256))
     print(tensor_acKx.shape, tensor_bKy.shape)
-    tensor_acKx = tensor_acKx.unflatten(dim=0, sizes=(24,12)).contiguous()
-    tensor_bKy = tensor_bKy.unflatten(dim=0, sizes=(6,12)).contiguous()
+    tensor_acKx = tensor_acKx.unflatten(dim=0, sizes=(24,6)).contiguous()
+    tensor_bKy = tensor_bKy.unflatten(dim=0, sizes=(-1,6)).contiguous()
     print(tensor_acKx.shape, tensor_bKy.shape)
+
 
 
 
@@ -111,15 +129,16 @@ if __name__ == "__main__":
     # 3. Prepare Tensor C
     # Layout: (ac, b, m2, m1, x_block, n2, n1, y_block)
     # Größen: (12, 4,  4,  6,       128,  3,  6,       128)
-    C_m2m1x_n2n1y = torch.empty((24, 12, 64, 6, 12, 64), dtype=torch.float16, device='cuda')
+    C_m2m1x_n2n1y = torch.empty((24, 6, 128, 3, 6, 256), dtype=torch.float16, device='cuda')
 
-    grid = (24, 6, 12*12)
+    #grid = (6*6*6*24,1,1)
+    grid = (6*6,3,24)
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 12, K, 64, 64)
+        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 6, K, 128, 256)
     )
 
     C_final = C_m2m1x_n2n1y
@@ -177,7 +196,7 @@ if __name__ == "__main__":
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 12, K, 128, 128)
+        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 6, K, 128, 256)
     )
     )
     

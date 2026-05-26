@@ -31,9 +31,9 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
 
     acc = ct.zeros((x,y), dtype=ct.float32)
     
-    k_t = 128
+    k_t = 64
 
-    for k_i in range(32):
+    for k_i in range(64):
         A_ = ct.load(
             A, 
             index=(m2_i, m1_i, 0, k_i), 
@@ -96,12 +96,13 @@ if __name__ == "__main__":
     K = s * p
 
     print(tensor_acKx.shape, tensor_bKy.shape)
-    tensor_acKx = tensor_acKx.unflatten(dim=1, sizes=( 24, 64)).flatten(0,1)
-    tensor_bKy = tensor_bKy.unflatten(dim=2, sizes=( 18, 64)).permute(0, 2, 1, 3).flatten(0,1)
+    tensor_acKx = tensor_acKx.unflatten(dim=1, sizes=( 12, 128)).flatten(0,1)
+    tensor_bKy = tensor_bKy.unflatten(dim=2, sizes=( 9, 128)).permute(0, 2, 1, 3).flatten(0,1)
     print(tensor_acKx.shape, tensor_bKy.shape)
-    tensor_acKx = tensor_acKx.unflatten(dim=0, sizes=(24,12)).contiguous()
-    tensor_bKy = tensor_bKy.unflatten(dim=0, sizes=(6,12)).contiguous()
+    tensor_acKx = tensor_acKx.unflatten(dim=0, sizes=(24,6)).contiguous()
+    tensor_bKy = tensor_bKy.unflatten(dim=0, sizes=(6,6)).contiguous()
     print(tensor_acKx.shape, tensor_bKy.shape)
+
 
 
 
@@ -111,15 +112,15 @@ if __name__ == "__main__":
     # 3. Prepare Tensor C
     # Layout: (ac, b, m2, m1, x_block, n2, n1, y_block)
     # Größen: (12, 4,  4,  6,       128,  3,  6,       128)
-    C_m2m1x_n2n1y = torch.empty((24, 12, 64, 6, 12, 64), dtype=torch.float16, device='cuda')
+    C_m2m1x_n2n1y = torch.empty((24, 6, 128, 6, 6, 128), dtype=torch.float16, device='cuda')
 
-    grid = (24, 6, 12*12)
+    grid = (24, 6, 6*6)
 
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 12, K, 64, 64)
+        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 6, K, 128, 128)
     )
 
     C_final = C_m2m1x_n2n1y

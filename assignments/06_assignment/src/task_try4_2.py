@@ -22,14 +22,29 @@ from config import Config, DataType, PrimType, DimType, ExecType, generate_confi
 @ct.kernel
 def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Constant[int], y: ct.Constant[int]):
     
-    m2_i = ct.bid(0) 
+    m2_i = ct.bid(2) 
     n2_i = ct.bid(1)  
 
-    swizzle = ct.bid(2)     
+    swizzle = ct.bid(0)     
     m1_i = swizzle % n1 
     n1_i = swizzle // n1    
 
-    acc = ct.zeros((x,y), dtype=ct.float32)
+    #    grid = (6*6*6*24,1,1)
+
+    # temp = ct.bid(0)
+
+    # n1_i = temp % 6
+    # temp = temp // 6
+
+    # m1_i = temp % 6
+    # temp = temp // 6
+
+    # n2_i = temp % 6
+    # m2_i = temp // 24
+
+
+
+    acc = ct.zeros((x,y), dtype=ct.float16)
     
     k_t = 64
 
@@ -41,6 +56,7 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
             padding_mode=ct.PaddingMode.ZERO
         )
         A_ = ct.reshape(A_, (x, k_t))
+        #A_ = ct.transpose(A_)
         B_ = ct.load(
             B, 
             index=(n2_i, n1_i, k_i, 0), 
@@ -48,9 +64,10 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
             padding_mode=ct.PaddingMode.ZERO
         )
         B_ = ct.reshape(B_, (k_t, y))
+        #B_ = ct.transpose(B_)
         acc += ct.matmul(A_, B_)
 
-    acc = ct.astype(acc, ct.float16)
+    #acc = ct.astype(acc, ct.float16)
 
     acc = ct.reshape(acc, (1, 1, x, 1, 1, y))
     ct.store(C, index=(m2_i, m1_i, 0, n2_i, n1_i, 0), tile=acc)
@@ -114,7 +131,8 @@ if __name__ == "__main__":
     # Größen: (12, 4,  4,  6,       128,  3,  6,       128)
     C_m2m1x_n2n1y = torch.empty((24, 6, 128, 6, 6, 128), dtype=torch.float16, device='cuda')
 
-    grid = (24, 6, 6*6)
+    #grid = (6*6*6*24,1,1)
+    grid = (6*6,6,24)
 
     ct.launch(
         torch.cuda.current_stream(), 
@@ -173,14 +191,16 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------
     # Benchmark optimized kernel
     # ----------------------------------------------------------------
+    torch.cuda.init()
     t_ms_opt = triton.testing.do_bench(lambda:
     ct.launch(
         torch.cuda.current_stream(), 
         grid, 
         contraction, 
-        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 12, K, 128, 128)
+        (tensor_acKx, tensor_bKy, C_m2m1x_n2n1y, 6, K, 128, 128)
     )
     )
+    torch.cuda.synchronize()
     
     tflops_opt = flops / (t_ms_opt / 1000) / (10**12)
     
