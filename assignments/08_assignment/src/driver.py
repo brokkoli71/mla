@@ -31,8 +31,10 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     # print(expected)
     # round to 2 decimal places for better readability
     # print(torch.round(ref - expected) / 100)
+    # only one tile, one kernel, so only verify the first 8x8 block
     # assert torch.allclose(in0[:8, :8] @ in1[:8, :8], out[:8, :8], rtol=0.5)
-    assert torch.allclose(in0[:8, :16] @ in1[:16, :8], out[:8, :8], rtol=0.5)
+    # one r
+    assert torch.allclose(in0[:, :8] @ in1[:8, :], out, rtol=0.5)
     # assert torch.allclose(in0 @ in1, out, rtol=1e-02)
 
 
