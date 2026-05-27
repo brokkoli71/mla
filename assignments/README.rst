@@ -31,6 +31,9 @@ Assignments
    * - 07
      - Inferring the VLIW ISA of XDNA2
      - 05/25
+   * - 08
+     - XDNA GEMM Kernel
+     - 06/01
 
 ----
 
