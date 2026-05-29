@@ -45,9 +45,16 @@ Keep in mind that the input tensors must be converted from BF16 to BFP16 (`bfp16
 | `in1`  |           |
 
 ## Task 4 — Data Layouts and Pointer Updates
-the initial idea was to hold all results permanently in the Accumulator Registers. but that would require them to occupy dm0-dm3 (one per resulting tile), leaving only one Accumulator Register for the conversion of the inputs `bf16 -> fp32 -> bfp16`
-
 **Sketch** the data layout and the required pointer updates corresponding to your register blocking.
+
+the idea was to hold all results permanently in the Accumulator Registers. but that would require them to occupy dm0-dm3 (one per resulting tile), leaving only one Accumulator Register for the conversion of the inputs `bf16 -> fp32 -> bfp16`
+
+therefore, the computation is mainly loading bound. 
+
+probably, only using dm0 and dm1 for the results would result in faster speeds, as loading would be significantly faster. but on the other hand, this would require to first compute half of the output, and later the rest. 
+
+In one iteration of accumulating the output we load 2 tiles of in0 and 2 of in1, multiply the tiles and add them onto the output: 
+![data layout](data_layout_2.png)
 
 ## Task 5 — Implementation
 

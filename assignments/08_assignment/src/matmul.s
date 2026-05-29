@@ -7,8 +7,8 @@ matmul:
 // Computes out += in0 * in1
 // L1 tensor views:
 //   p=2, q=2, r=8, m=8, n=8, k=8
-//   in0: prmk (p0)
-//   in1: rqkn (p1)
+//   in0: prmk (p0) -> ex10, ex11
+//   in1: rqkn (p1) -> ex0, ex1
 //   out: pqmn (p2)
   // load inputs in0
   # 1 q-stride = 8 for k, 8 for m, 8 for r, 2 byte for bf16 = 1024
