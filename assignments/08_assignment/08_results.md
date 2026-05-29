@@ -28,7 +28,7 @@ When writing the output tensor, its layout is changed back to a matrix layout (`
 
 | Instruction | Slot | Latency |
 |-------------|------|---------|
-|             |      |         |
+|  vmul.f     |      |  6      |
 
 ## Task 3 — Register Blocking
 
@@ -45,6 +45,7 @@ Keep in mind that the input tensors must be converted from BF16 to BFP16 (`bfp16
 | `in1`  |           |
 
 ## Task 4 — Data Layouts and Pointer Updates
+the initial idea was to hold all results permanently in the Accumulator Registers. but that would require them to occupy dm0-dm3 (one per resulting tile), leaving only one Accumulator Register for the conversion of the inputs `bf16 -> fp32 -> bfp16`
 
 **Sketch** the data layout and the required pointer updates corresponding to your register blocking.
 

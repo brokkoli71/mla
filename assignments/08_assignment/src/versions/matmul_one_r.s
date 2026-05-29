@@ -10,33 +10,18 @@ matmul:
 //   in0: prmk
 //   in1: rqkn
 //   out: pqmn
-  // load inputs in0
-  # 1 q-stride = 8 for k, 8 for m, 8 for r, 2 byte for bf16 = 1024
-  vlda.conv.fp32.bf16	 cml0, [p0,#0]
-  vlda.conv.fp32.bf16	 cmh0, [p0,#64]
-  # to padd by 1024
-  padds [p0], #256
-  padds [p0], #256
-  padds [p0], #256
-  padds [p0], #256
-  nop
-  nop
-  vconv.bfp16ebs8.fp32 ex10, dm0
-  vlda.conv.fp32.bf16	 cml0, [p0,#0]
-  vlda.conv.fp32.bf16	 cmh0, [p0,#64]
-  nop
-  nop
-  nop
-  nop
-  nop
-  nop
-  vconv.bfp16ebs8.fp32 ex11, dm0
-
   // load inputs in1
   vldb x0, [p1, #0]
   vldb x1, [p1, #64]
   vldb x2, [p1, #128]
   vldb x3, [p1, #192]
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
   nop
   nop
   // transpose in1
@@ -53,7 +38,7 @@ matmul:
   nop
   nop
   //TODO: convert the second half also and save it to ex3
-  // BF16 -> FP32 -> BFP16 of in1
+  // BF16 -> fp32 of in1
   // create ones
   movxm r0, #16256
   vbcst.16 x0, r0
@@ -62,19 +47,20 @@ matmul:
 
   mova r0, #60
   vmul.f dm0, y2, y0, r0
+  vmul.f dm1, y3, y0, r0
   nop
   nop
   nop
   nop
   nop
+  nop
+  nop
+  nop
+
+  // FP32 -> BFP16 of in1
   vconv.bfp16ebs8.fp32 ex0, dm0
-  vmul.f dm0, y3, y0, r0
-  nop
-  nop
-  nop
-  nop
-  nop
-  vconv.bfp16ebs8.fp32 ex1, dm0
+  vconv.bfp16ebs8.fp32 ex1, dm1
+
   nop
   nop
   nop
@@ -85,6 +71,29 @@ matmul:
   nop
   nop
   nop
+  // load inputs in0
+  # 1 q-stride = 8 for k, 8 for m, 8 for r, 2 byte for bf16 = 1024
+  vlda.conv.fp32.bf16	 cml0, [p0,#0]
+  vlda.conv.fp32.bf16	 cmh0, [p0,#64]
+  # to padd by 1024
+  padds [p0], #256
+  padds [p0], #256
+  padds [p0], #256
+  padds [p0], #256
+  vlda.conv.fp32.bf16	 cml1, [p0,#0]
+  vlda.conv.fp32.bf16	 cmh1, [p0,#64]
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  // fp32 -> bfp16
+  vconv.bfp16ebs8.fp32 ex2, dm0
+  vconv.bfp16ebs8.fp32 ex3, dm1
   nop
   nop
   nop
@@ -118,6 +127,7 @@ matmul:
   vlda.conv.fp32.bf16	 cmh2, [p3], #64
   vlda.conv.fp32.bf16	 cml3, [p3], #64
   vlda.conv.fp32.bf16	 cmh3, [p3], #64
+  
   nop
   nop
   nop
@@ -130,10 +140,10 @@ matmul:
   nop
   // matrix multiplication
   mova r0, #780
-  vmac.f dm0, dm0, ex10, ex0, r0
-  vmac.f dm1, dm1, ex10, ex1, r0 //TODO: maybe swap output of dm1 and dm2
-  vmac.f dm2, dm2, ex11, ex0, r0
-  vmac.f dm3, dm3, ex11, ex1, r0
+  vmac.f dm0, dm0, ex2, ex0, r0
+  vmac.f dm1, dm1, ex2, ex1, r0 //TODO: maybe swap output of dm1 and dm2
+  vmac.f dm2, dm2, ex3, ex0, r0
+  vmac.f dm3, dm3, ex3, ex1, r0
 
   nop
   nop

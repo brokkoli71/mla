@@ -25,9 +25,8 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     """
     # assert zero initial output
     expected = in0[:, :8] @ in1[:8, :]
-    fails = ((out-expected)*10).type(torch.int64)
     # print(((out-expected)*10).type(torch.int64))
-    assert torch.allclose(expected, out, atol=0.5), f"Verification failed: {fails}"
+    assert torch.allclose(expected, out, atol=0.5)
 
 
 
