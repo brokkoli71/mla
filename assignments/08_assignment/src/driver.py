@@ -24,18 +24,9 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     out : bfloat16 torch tensor
     """
     # assert zero initial output
-    expected = in0[:8, :8] @ in1[:8, :8]
-    # print(expected[:5, :5])
-    ref = out[:8, :8]
-    # print(ref)
-    # print(expected)
-    # round to 2 decimal places for better readability
-    # print(torch.round(ref - expected) / 100)
-    # only one tile, one kernel, so only verify the first 8x8 block
-    # assert torch.allclose(in0[:8, :8] @ in1[:8, :8], out[:8, :8], rtol=0.5)
-    # one r
-    assert torch.allclose(in0[:, :8] @ in1[:8, :], out, rtol=0.5)
-    # assert torch.allclose(in0 @ in1, out, rtol=1e-02)
+    expected = in0[:, :8] @ in1[:8, :]
+    # print(((out-expected)*10).type(torch.int64))
+    assert torch.allclose(expected, out, atol=0.5)
 
 
 

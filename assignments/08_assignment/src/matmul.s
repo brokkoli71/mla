@@ -131,12 +131,19 @@ matmul:
   nop
   nop
   nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
   // matrix multiplication
   mova r0, #780
-  vmac.f dm0, dm0, ex0, ex2, r0
-  vmac.f dm1, dm1, ex1, ex2, r0 //TODO: maybe swap output of dm1 and dm2
-  vmac.f dm2, dm2, ex0, ex3, r0
-  vmac.f dm3, dm3, ex1, ex3, r0
+  vmac.f dm0, dm0, ex2, ex0, r0
+  vmac.f dm1, dm1, ex2, ex1, r0 //TODO: maybe swap output of dm1 and dm2
+  vmac.f dm2, dm2, ex3, ex0, r0
+  vmac.f dm3, dm3, ex3, ex1, r0
 
   nop
   nop
