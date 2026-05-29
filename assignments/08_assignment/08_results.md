@@ -18,7 +18,7 @@ During the data movement to the L1 scratchpad memory, the layout is changed to `
 The NPU scratchpad memory is zero-initialized during NPU setup, so within the tensor kernel you may assume that the output tensor memory is already zero.
 When writing the output tensor, its layout is changed back to a matrix layout (`out: MN`).
 
-## Task 1 — Verify Function
+## Task 1 — Verify Function ✅
 
 **Implement** the `verify()` function for the matrix multiplication in `src/driver.py`.
 

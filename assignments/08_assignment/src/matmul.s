@@ -10,14 +10,61 @@ matmul:
 //   in0: prmk
 //   in1: rqkn
 //   out: pqmn
-
-// TODO: implement tensor kernel
-
   // load inputs in1
   vldb x0, [p1, #0]
   vldb x1, [p1, #64]
   vldb x2, [p1, #128]
   vldb x3, [p1, #192]
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  // transpose in1
+  mova	r0, #52
+  mova	r1, #53
+  vshuffle x4, x0, x1, r0
+  vshuffle x5, x0, x1, r1
+  vshuffle x6, x2, x3, r0
+  vshuffle x7, x2, x3, r1
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  //TODO: convert the second half also and save it to ex3
+  // BF16 -> fp32 of in1
+  // create ones
+  movxm r0, #16256
+  vbcst.16 x0, r0
+  nop
+  vmov x1, x0
+
+  mova r0, #60
+  vmul.f dm0, y2, y0, r0
+  vmul.f dm1, y3, y0, r0
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+
+  // FP32 -> BFP16 of in1
+  vconv.bfp16ebs8.fp32 ex0, dm0
+  vconv.bfp16ebs8.fp32 ex1, dm1
+
+  nop
+  nop
+  nop
+  nop
   nop
   nop
   nop
@@ -44,64 +91,42 @@ matmul:
   nop
   nop
   nop
-
-  // transpose in1
-  mova	r0, #52
-  mova	r1, #53
-  vshuffle x4, x0, x1, r0
-  vshuffle x5, x0, x1, r1
-  vshuffle x6, x2, x3, r0
-  vshuffle x7, x2, x3, r1
-
-
-  nop
-  nop
-  nop
-  nop
-  nop
-  // x0 to x3 are free again -> can be used for in0
-  vconv.bfp16ebs8.fp32 ex0, dm0
-  vconv.bfp16ebs8.fp32 ex1, dm1
-
-  nop
-  nop
-  nop
-
-  nop
-  nop
-  nop
-  nop
-  nop
-
-  //TODO: convert the second half also and save it to ex3
-  // BF16 -> fp32 of in1
-  movxm r0, #16256
-  vbcst.16 x0, r0
-  nop
-  vmov x1, x0
-  mova r0, #60
-  vmul.f dm2, y1, y0, r0
-  nop
-  nop
-  nop
-  nop
-  nop
   // fp32 -> bfp16
-  vconv.bfp16ebs8.fp32 ex2, dm2
+  vconv.bfp16ebs8.fp32 ex2, dm0
+  vconv.bfp16ebs8.fp32 ex3, dm1
   nop
   nop
   nop
-
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
   // all inputs are in ex, outputs can be loaded to dm
   //load outputs
-  vlda.conv.fp32.bf16	 cml0, [p2], #64
-  vlda.conv.fp32.bf16	 cmh0, [p2], #64
-  vlda.conv.fp32.bf16	 cml1, [p2], #64
-  vlda.conv.fp32.bf16	 cmh1, [p2], #64
-  vlda.conv.fp32.bf16	 cml2, [p2], #64
-  vlda.conv.fp32.bf16	 cmh2, [p2], #64
-  vlda.conv.fp32.bf16	 cml3, [p2], #64
-  vlda.conv.fp32.bf16	 cmh3, [p2], #64
+  // copy init value of p2 to p3 for later store
+  mov p3, p2
+  vlda.conv.fp32.bf16	 cml0, [p3], #64
+  vlda.conv.fp32.bf16	 cmh0, [p3], #64
+  vlda.conv.fp32.bf16	 cml1, [p3], #64
+  vlda.conv.fp32.bf16	 cmh1, [p3], #64
+  vlda.conv.fp32.bf16	 cml2, [p3], #64
+  vlda.conv.fp32.bf16	 cmh2, [p3], #64
+  vlda.conv.fp32.bf16	 cml3, [p3], #64
+  vlda.conv.fp32.bf16	 cmh3, [p3], #64
   
   nop
   nop
@@ -123,9 +148,16 @@ matmul:
   nop
   nop
   nop
-  // todo: store the rest of the outputs
-  vst.conv.bf16.fp32 cml0, [p2, #0]
-  vst.conv.bf16.fp32 cmh0, [p2, #64]
+  // todo: which order is correct for store? maybe swap dm1 and dm2
+  // store outputs
+  vst.conv.bf16.fp32 cml0, [p2], #64
+  vst.conv.bf16.fp32 cmh0, [p2], #64
+  vst.conv.bf16.fp32 cml1, [p2], #64
+  vst.conv.bf16.fp32 cmh1, [p2], #64
+  vst.conv.bf16.fp32 cml2, [p2], #64
+  vst.conv.bf16.fp32 cmh2, [p2], #64
+  vst.conv.bf16.fp32 cml3, [p2], #64
+  vst.conv.bf16.fp32 cmh3, [p2], #64
   ret lr
   nop                                 // Delay Slot 5
   nop                                 // Delay Slot 4
