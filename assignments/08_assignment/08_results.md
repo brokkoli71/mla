@@ -30,6 +30,9 @@ When writing the output tensor, its layout is changed back to a matrix layout (`
 |-------------|------|---------|
 |  vmul.f     |      |  6      |
 
+vconv.fp32.bf16 cml1, x2 | same as vshuffle | 2
+vconv.bfp16ebs8.fp32 ex7 | not the same as vshuffle | 4
+
 ## Task 3 — Register Blocking
 
 **Choose** a register blocking for your tensor kernel.

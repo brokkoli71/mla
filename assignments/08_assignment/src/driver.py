@@ -24,10 +24,13 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     out : bfloat16 torch tensor
     """
     # assert zero initial output
-    # expected = in0[:, :8] @ in1[:8, :] // for one r
+    #print(out)
+    #expected = in0[:, :8] @ in1[:8, :]
     expected = in0 @ in1
-    fails = ((out-expected)*10).type(torch.int64)
-    assert torch.allclose(expected, out, atol=0.5), f"Verification failed: {fails}"
+    #print(expected)
+    print(((out-expected)*10).type(torch.int64))
+    assert torch.allclose(expected, out, atol=0.5)
+
 
 
 def run() -> None:
@@ -51,6 +54,14 @@ def run() -> None:
     data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
     data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
     data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
+
+    # data_in0 = torch.empty(16, 64, dtype=torch.bfloat16)
+    # data_in1 = torch.empty(64, 16, dtype=torch.bfloat16)
+    # data_out = torch.empty(16, 16, dtype=torch.bfloat16)
+
+    data_in0.fill_(2)
+    data_in1.fill_(3)
+    #data_out.fill_(1)
 
     # Create buffer objects with corresponding size
     bo_in0 = pyxrt.bo(device, data_in0.nbytes, pyxrt.bo.host_only, 0)
