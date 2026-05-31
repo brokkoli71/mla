@@ -47,6 +47,7 @@ def run() -> None:
     bo_instr = pyxrt.bo(device, insts.nbytes, pyxrt.bo.cacheable, kernel.group_id(1))
     bo_instr.write(insts.tobytes(), 0)
     bo_instr.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, insts.nbytes, 0)
+    torch.manual_seed(42)
 
     data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
     data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
