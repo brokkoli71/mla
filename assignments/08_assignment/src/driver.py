@@ -16,7 +16,7 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     """
     Verify the NPU output against a CPU reference.
 
-    Computation: out += in0 * in1
+    Computation: out += in0 @ in1
 
     Parameters
     ----------

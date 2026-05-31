@@ -13,7 +13,7 @@ pip install torch                  # only once
 
 ## Data Layout and Data Movement
 
-In the main memory the matrices are stored in row-major order (`in0: MK`, `in1: KN`, and `out: MN`).
+In the main memory the matrices are stored in row-major order (`in0: MK`, `in1: KN`, and `out: MN` with `M=16`, `N=16`, and `K=64`).
 During the data movement from L3 (main memory) to L1 (scratchpad), the matrices are tiled.
 The dimensions are split as follows:
 
@@ -29,6 +29,8 @@ When writing the output tensor, its layout is changed back to a matrix layout (`
 ## Task 1 — Verify Function
 
 **Implement** the `verify()` function for the matrix multiplication in `src/driver.py`.
+Add `torch.manual_seed(42)` before the tensor initialization.
+Set the maximal absolute error to `0.5` and the maximum relative error to `0.2` when comparing the tensors.
 
 ## Task 2 — Instructions and Latencies
 
