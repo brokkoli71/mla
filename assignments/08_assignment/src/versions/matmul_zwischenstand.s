@@ -17,70 +17,93 @@ matmul:
   // nop
   // vmov x1, x0
   // vmul.f dm1, y1, y0, r3
+  //nop
+  //nop
+  //nop
+  //nop
+  //nop
+  //nop
 
 
 // TODO: implement tensor kernel
-  //load outputs
-  vlda.conv.fp32.bf16	 cml0, [p0, #0]; vldb x0, [p1, #0]
-  vlda.conv.fp32.bf16	 cmh0, [p0, #64]; vldb x1, [p1, #64]
-  #movxm r2, #16256
-  #mov r3, #60
-  vlda.conv.fp32.bf16	 cml2, [p2, #0]
-  vlda.conv.fp32.bf16	 cmh2, [p2, #64]
+  #mov p3, p0
+  #mov p5, p2
+  //load 8x8 in0 ;                    load 8x8 in1; copy base pointer
+  vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p1, #0]; mov p4, p1 //padds [p3], #128 
+  vlda.conv.fp32.bf16	 cmh0, [p0], #64; vldb x1, [p1, #64]; padds [p4], #256
+    //load 2nd 8x8 in0 ;                    load 2nd 8x8 in1;
+  vlda.conv.fp32.bf16	 cml2, [p2, #0] ; mov	r0, #52
+  vlda.conv.fp32.bf16	 cmh2, [p2, #64]; mov	r1, #53
+  vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p4, #0]
+  vlda.conv.fp32.bf16	 cmh0, [p0], #64; vldb x1, [p4, #64]; padds [p4], #256
+  // load output;                      
+  //load tile3 8x8 in0 ;                    load tile3 8x8 in1;
+  mov r3, #780
   nop
-  nop
-  nop
-  nop
-  mov	r0, #52
-  mov	r1, #53
-  // transpose
-  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex8, dm0
-  vshuffle x3, x0, x1, r1
+  vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p4, #0] 
+  // transpose in1 tile1; convert in0 tile1 bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex10, dm0; vlda.conv.fp32.bf16	 cmh0, [p0], #64; vldb x1, [p4, #64]
+  vshuffle x3, x0, x1, r1 
+  // convert in1 ->fp32                                                                        load tile4
+  vconv.fp32.bf16 cml4, x2;                                                                   padds [p4], #256
+  vconv.fp32.bf16 cmh4, x3;                                                                   vlda.conv.fp32.bf16	cml0, [p0], #64; vldb x0, [p4, #0]
+  // transpose in1 tile2; convert tile2 in0 fp32 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex9, dm0;                                     vlda.conv.fp32.bf16	cmh0, [p0], #64; vldb x1, [p4, #64]   
+  // still transpose tile2; convert in1 tile1 bfp16
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm4                                  
+  // convert tile2 in1 ->fp32;                                                                load tile5
+  vconv.fp32.bf16 cml1, x2;                                                                   padds [p4], #256  
+  vconv.fp32.bf16 cmh1, x3;                                                                   vlda.conv.fp32.bf16	cml0, [p0], #64; vldb x0, [p4, #0]
+  // transpose in1 tile3; convert tile3 in0 ->bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex10, dm0;                                    vlda.conv.fp32.bf16	cmh0, [p0], #64; vldb x1, [p4, #64]
+  //                     ; convert tile2 in1 bfp16;      ; matrix multiplication tile1
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex10, ex11, r3
+  // convert tile 3 in1 ->fp32;                                                               load tile6
+  vconv.fp32.bf16 cml1, x2;                                                                   padds [p4], #256
+  vconv.fp32.bf16 cmh1, x3;                                                                   vlda.conv.fp32.bf16	cml0, [p0], #64; vldb x0, [p4, #0]
+  // transpose in1 tile4; convert tile4 in0 -> bfp16 
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex9, dm0;                                     vlda.conv.fp32.bf16	cmh0, [p0], #64; vldb x1, [p4, #64]
+  //                     ; convert tile3 in1 ->bfp16;    ; matrix multiplication tile 2
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex9, ex11, r3
+  // convert tile4 in1 ->fp32                                                                 load tile7
+  vconv.fp32.bf16 cml1, x2;                                                                   padds [p4], #256 
+  vconv.fp32.bf16 cmh1, x3;                                                                   vlda.conv.fp32.bf16	cml0, [p0], #64; vldb x0, [p4, #0] 
+  // transpose in1 tile5; convert tile5 in0 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex10, dm0;                                    vlda.conv.fp32.bf16	cmh0, [p0], #64; vldb x1, [p4, #64]
+  //                     ; convert tile4 in1 -> bfp16    ; matrix mul tile3
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex10, ex11, r3
+  // convert in1 tile 5 ->fp32;                                                               load tile8
+  vconv.fp32.bf16 cml1, x2;                                                                   padds [p4], #256  
+  vconv.fp32.bf16 cmh1, x3;                                                                   vlda.conv.fp32.bf16	cml0, [p0], #64; vldb x0, [p4, #0]
+  // transpose in1 tile6; convert tile6 in0 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex9, dm0;                                     vlda.conv.fp32.bf16	cmh0, [p0], #64; vldb x1, [p4, #64]
+  //                     ; convert tile5 in1 -> bfp16    ; matrix mul tile4;
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex9, ex11, r3
+  // convert in1 tile 6 ->fp32; 
   vconv.fp32.bf16 cml1, x2
   vconv.fp32.bf16 cmh1, x3
-  nop
-  // fp32 -> bfp16
-  vconv.bfp16ebs8.fp32 ex0, dm1
-  nop
-  nop
-  mova r4, #780
-  // matrix multiplication
-  vmac.f dm2, dm2, ex8, ex0, r4
-
-  // 2nd
-  mov p3, p0 //in0
-  mov p4, p1 //in1
-  mov p5, p2 //out
-  padds [p3], #128 //in0 zum nächsten k schieben
-  padds [p4], #256 //in1 zum nächsten k schieben
-
-
-  vlda.conv.fp32.bf16	 cml0, [p3, #0]; vldb x0, [p4, #0]
-  vlda.conv.fp32.bf16	 cmh0, [p3, #64]; vldb x1, [p4, #64]
-  #movxm r2, #16256
-  #mov r3, #60
-  nop
-  nop
-  nop
-  nop
-  nop
-  nop
-  mov	r0, #52
-  mov	r1, #53
-  // transpose
-  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex8, dm0
-  vshuffle x3, x0, x1, r1
+  // transpose in1 tile7; convert tile7 in0 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex10, dm0
+  //                     ; convert tile6 in1 -> bfp16    ; matrix mul tile5;
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex10, ex11, r3
+  // convert in1 tile 7 ->fp32; 
   vconv.fp32.bf16 cml1, x2
   vconv.fp32.bf16 cmh1, x3
-  // fp32 -> bfp16
+  // transpose in1 tile8; convert tile8 in0 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex9, dm0
+  //                     ; convert tile7 in1 -> bfp16    ; matrix mul tile6;
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex9, ex11, r3
+    // convert in1 tile 8 ->fp32; 
+  vconv.fp32.bf16 cml1, x2
+  vconv.fp32.bf16 cmh1, x3
+  // transpose in1 tile9; convert tile9 in0 -> bfp16
+  vshuffle x2, x0, x1, r0; vconv.bfp16ebs8.fp32 ex10, dm0
+  //                     ; convert tile8 in1 -> bfp16    ; matrix mul tile7;
+  vshuffle x3, x0, x1, r1; vconv.bfp16ebs8.fp32 ex11, dm1; vmac.f dm2, dm2, ex10, ex11, r3
   nop
-  vconv.bfp16ebs8.fp32 ex0, dm1
   nop
-  nop
-  mova r4, #780
-  // matrix multiplication
-  vmac.f dm2, dm2, ex8, ex0, r4
-
+  nop // matmul til8
+  vmac.f dm2, dm2, ex9, ex11, r3
   nop
   nop
   nop
@@ -88,6 +111,40 @@ matmul:
   nop
   vst.conv.bf16.fp32 cml2, [p2, #0]
   vst.conv.bf16.fp32 cmh2, [p2, #64]
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
   ret lr
   nop                                 // Delay Slot 5
   nop                                 // Delay Slot 4

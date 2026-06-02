@@ -30,8 +30,8 @@ When writing the output tensor, its layout is changed back to a matrix layout (`
 |-------------|------|---------|
 |  vmul.f     |      |  6      |
 
-vconv.fp32.bf16 cml1, x2 | same Slot as vshuffle | 2
-vconv.bfp16ebs8.fp32 ex7 | not the same Slot as vshuffle | 4
+vconv.fp32.bf16 cml1, x2 | same Slot as vshuffle M | 2
+vconv.bfp16ebs8.fp32 ex7 | not the same Slot as vshuffle S | 4
 vmac.f dm2, dm2, ex10, ex11, r3 | V | 6, 4 für akkumulator late forwarding
 
 ## Task 3 — Register Blocking
