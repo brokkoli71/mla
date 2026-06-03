@@ -47,10 +47,9 @@ def run() -> None:
     bo_instr.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, insts.nbytes, 0)
 
     torch.manual_seed(42)
-    # TODO: adapt to M=256, N=128, K=1024
-    data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
-    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
-    data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
+    data_in0 = torch.randn(256, 1024, dtype=torch.bfloat16)
+    data_in1 = torch.randn(1024, 128, dtype=torch.bfloat16)
+    data_out = torch.zeros(256, 128, dtype=torch.bfloat16)
 
     # Create buffer objects with corresponding size
     bo_in0 = pyxrt.bo(device, data_in0.nbytes, pyxrt.bo.host_only, 0)
@@ -87,8 +86,10 @@ def run() -> None:
     bo_in1.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_in1.nbytes, 0)
     bo_out.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_out.nbytes, 0)
 
+    print("running kernel")
     h = kernel(3, bo_instr, insts.nbytes, bo_in0, bo_in1, bo_out)
     h.wait()
+    print("kernel finished")
 
     # Sync output buffer object: from device
     bo_out.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_FROM_DEVICE, data_out.nbytes, 0)
