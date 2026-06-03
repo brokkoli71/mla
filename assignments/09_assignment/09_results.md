@@ -40,7 +40,10 @@ Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
 ## Task 2 - Data Layouts and Loops
 
 **Sketch** the data movement between main memory, shim tile, memory tile, and compute tile.
+- data will be loaded from main memory to the shim tile, then to the memory tile, and finally to the compute tile where the matrix multiplication will be performed. The output will be moved back in the reverse order.
 **Describe** which *mlir-aie* operation is involved in each step.
+- `aie.objectfifo` will create a channel from shim to memory tile and a channel from memory tile to compute tile. both will be linked by `aie.objectfifo.link`
+- `aiex.npu.dma_memcpy_nd()` maps main memory to shim and `aiex.npu.dma_wait` will wait until writing is finished
 
 ## Task 3 - Implementation
 
