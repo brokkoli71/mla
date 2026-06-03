@@ -23,10 +23,9 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     in0, in1 : bfloat16 torch tensors
     out : bfloat16 torch tensor
     """
-
-    # TODO: implement verify() for tensor kernel.
-
-    raise NotImplementedError("verify() not yet implemented")
+    expected = in0 @ in1
+    fails = ((out-expected)*10).type(torch.int64)
+    assert torch.allclose(expected, out, atol=2, rtol=0.5), f"Verification failed: {fails}"
 
 
 def run() -> None:
