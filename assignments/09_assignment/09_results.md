@@ -28,14 +28,14 @@ Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
 
 **Give a brief summary** of the following *mlir-aie* operations:
 
-1. `aie.tile()`
-2. `aie.core()`
-3. `aie.runtime_sequence()`
-4. `aie.objectfifo()`
-5. `aie.objectfifo.link()`
-6. `aie.objectfifo.acquire()` and `aie.objectfifo.release()`
-7. `aiex.npu.dma_memcpy_nd()`
-8. `aiex.npu.dma_wait()`
+1. `aie.tile()`: This operation creates an AIE tile in the AIE array
+2. `aie.core()`: This operation represents an AIEngine processor core belonging to a tile
+3. `aie.runtime_sequence()`: Instructions in this operation allow for runtime (re-)configuration of the AI Engine array, such as configuring data movement buffer descriptors. (e.g. data transfers between host and AIE array on the shims)
+4. `aie.objectfifo()`: Creates a circular buffer or channel between two tiles
+5. `aie.objectfifo.link()`: Links two objectFifos through an intermediary tile’s DMA (Direct Memory Access)
+6. `aie.objectfifo.acquire()` and `aie.objectfifo.release()`: Acquire/Release operation to lock and return objects of an ObjectFifo
+7. `aiex.npu.dma_memcpy_nd()`: An n-dimensional half DMA operator. Programs a DMA to access a memory memref with an access pattern specified by offsets, sizes and strides or static_offsets, static_sizes and static_strides
+8. `aiex.npu.dma_wait()`: blocks until the DMA referenced through symbol completes execution and issues a task-complete-token. e.g. `aiex.npu.dma_wait { symbol = @out0 }`
 
 ## Task 2 - Data Layouts and Loops
 
