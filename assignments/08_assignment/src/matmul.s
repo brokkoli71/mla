@@ -59,6 +59,10 @@ matmul:
   vmac.f dm2, dm2, ex11, ex0, r5; padds [p4], #128 // pad p4 for next iteration
   vmac.f dm3, dm3, ex11, ex1, r5
   nop
+  nop
+  vst.conv.bf16.fp32 cml4, [p2, #0]
+  vst.conv.bf16.fp32 cmh4, [p2, #64]
+
 
 ///////////////////////////////////////////// r=1
   // load inputs in0
@@ -71,18 +75,15 @@ matmul:
   vldb x1, [p1, #64];padds [p4], #256; vbcst.16 x8, r3
   vldb x2, [p1, #128];padds [p4], #256; mova r4, #60
   vldb x3, [p1, #192];padds [p4], #256; vmov x9, x8
+  vlda.conv.fp32.bf16	 cml4, [p4,#0]
+  vlda.conv.fp32.bf16	 cmh4, [p4,#64]
+  vconv.bfp16ebs8.fp32 ex10, dm0;     mov p3, p2 // copy init value of p2 to p3 for later store
   nop
-  nop
-  vconv.bfp16ebs8.fp32 ex10, dm0
-  vlda.conv.fp32.bf16	 cml0, [p4,#0]
-  vlda.conv.fp32.bf16	 cmh0, [p4,#64];   mov p3, p2   // copy init value of p2 to p3 for later store
   vshuffle x4, x0, x1, r0
   vshuffle x5, x0, x1, r1
   vshuffle x6, x2, x3, r0
   vshuffle x7, x2, x3, r1
-  nop
-  nop
-  vconv.bfp16ebs8.fp32 ex11, dm0
+  vconv.bfp16ebs8.fp32 ex11, dm4
   // BF16 -> FP32 -> BFP16 of in1
   vmul.f dm0, y2, y4, r4
   nop
@@ -90,8 +91,8 @@ matmul:
   nop
   nop
   nop
-  vconv.bfp16ebs8.fp32 ex0, dm0
-  vmul.f dm0, y3, y4, r4
+  vconv.bfp16ebs8.fp32 ex0, dm0; vlda.conv.fp32.bf16	 cml4, [p2, #0] // reload cml4
+  vmul.f dm0, y3, y4, r4;   vlda.conv.fp32.bf16	 cmh4, [p2, #64] // reload cmh4
   nop
   nop
   nop
@@ -413,16 +414,11 @@ matmul:
   vst.conv.bf16.fp32 cml4, [p2], #64
   vst.conv.bf16.fp32 cmh4, [p2], #64
   vst.conv.bf16.fp32 cml1, [p2], #64
-  vst.conv.bf16.fp32 cmh1, [p2], #64
-  vst.conv.bf16.fp32 cml2, [p2], #64
-  vst.conv.bf16.fp32 cmh2, [p2], #64
-  vst.conv.bf16.fp32 cml3, [p2], #64
-  vst.conv.bf16.fp32 cmh3, [p2], #64
   ret lr
-  nop                                 // Delay Slot 5
-  nop                                 // Delay Slot 4
-  nop                                 // Delay Slot 3
-  nop                                 // Delay Slot 2
-  nop                                 // Delay Slot 1
+  vst.conv.bf16.fp32 cmh1, [p2], #64 // Delay Slot 5
+  vst.conv.bf16.fp32 cml2, [p2], #64 // Delay Slot 4
+  vst.conv.bf16.fp32 cmh2, [p2], #64 // Delay Slot 3
+  vst.conv.bf16.fp32 cml3, [p2], #64 // Delay Slot 2
+  vst.conv.bf16.fp32 cmh3, [p2], #64 // Delay Slot 1
 .Lfunc_end0:
   .size matmul, .Lfunc_end0-matmul
