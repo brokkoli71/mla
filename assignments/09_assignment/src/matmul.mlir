@@ -40,16 +40,16 @@ module { // "wir sind in einem mla modul"
       }
       aie.end
     } {stack_size = 1024 : i32}
-    aie.runtime_sequence(%arg0: memref<16x64xbf16>, %arg1: memref<64x16xbf16>, %arg2: memref<16x16xbf16>) {
+    aie.runtime_sequence(%arg0: memref<256x64xbf16>, %arg1: memref<64x16xbf16>, %arg2: memref<256x16xbf16>) {
       // a=16, p=2, m=8
       // b=8, q=2, n=8
       // c=16, r=8, k=8
       // = 8*2*8*8
 
-      // pmqn -> 0, 0, p, q
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 0][1, 1, 16, 16][0, 0, 16, 1]) {id = 0 : i64, metadata = @out_L2L3_0} : memref<16x16xbf16>
-      // pmcrk -> 0, 0, p, r
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 0][1, 1, 16, 64][0, 0, 64, 1]) {id = 1 : i64, metadata = @in0_L3L2_0} : memref<16x64xbf16>
+      // apmqn -> a, 0, p, q
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 0][16, 1, 16, 16][256, 0, 16, 1]) {id = 0 : i64, metadata = @out_L2L3_0} : memref<256x16xbf16>
+      // apmrk -> a, 0, p, r
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 0][16, 1, 16, 64][1024, 0, 64, 1]) {id = 1 : i64, metadata = @in0_L3L2_0} : memref<256x64xbf16>
       // crkqn -> 0, 0, r, q
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 0][1, 1, 64, 16][0, 0, 16, 1]) {id = 2 : i64, metadata = @in1_L3L2_0} : memref<64x16xbf16>
       aiex.npu.dma_wait {symbol = @out_L2L3_0}
