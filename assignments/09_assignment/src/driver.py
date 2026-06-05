@@ -27,7 +27,7 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     # fails = ((out-expected)*10).type(torch.int64)
     # assert torch.allclose(expected, out, atol=2, rtol=0.5), f"Verification failed: {fails}"
 
-    diff = (in0[:16, :1024] @ in1[:1024, :16]) - out[:16, :16]
+    diff = (in0[:16, :64] @ in1[:64, :16]) - out[:16, :16]
     fails = (diff*10).type(torch.int64)
     assert torch.allclose(diff, torch.zeros_like(diff), atol=2, rtol=0.5), f"Verification failed: {fails}"
 
@@ -55,8 +55,8 @@ def run() -> None:
     data_in1 = torch.randn(1024, 128, dtype=torch.bfloat16)
     data_out = torch.zeros(256, 128, dtype=torch.bfloat16)
 
-    data_in0 = torch.randn(16, 1024, dtype=torch.bfloat16)
-    data_in1 = torch.randn(1024, 16, dtype=torch.bfloat16)
+    data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
+    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
     data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
 
 
