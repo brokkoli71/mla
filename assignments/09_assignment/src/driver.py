@@ -23,19 +23,19 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     in0, in1 : bfloat16 torch tensors
     out : bfloat16 torch tensor
     """
-    # expected = in0 @ in1
-    # fails = ((out-expected)*10).type(torch.int64)
-    # assert torch.allclose(expected, out, atol=2, rtol=0.5), f"Verification failed: {fails}"
+    expected = in0 @ in1
+    fails = ((out-expected)*10).type(torch.int64)
+    assert torch.allclose(expected, out, atol=2, rtol=0.5), f"Verification failed: {fails}"
 
-    diff = (in0[:16, :64] @ in1[:64, :16]) - out[:16, :16]
-    assert torch.allclose(diff, torch.zeros_like(diff), atol=2, rtol=0.5), f"regression failed"
+    # diff = (in0[:16, :64] @ in1[:64, :16]) - out[:16, :16]
+    # assert torch.allclose(diff, torch.zeros_like(diff), atol=2, rtol=0.5), f"regression failed"
 
-    diff = (in0 @ in1) - out
-    print(out.shape)
-    diff = (in0[:256, :64] @ in1[:64, :16]) - out[:256, :16]
+    # diff = (in0 @ in1) - out
+    # print(out.shape)
+    # diff = (in0[:256, :64] @ in1[:64, :16]) - out[:256, :16]
 
-    fails = (diff*10).type(torch.int64)
-    assert torch.allclose(diff, torch.zeros_like(diff), atol=2, rtol=0.5), f"Verification failed: {fails}"
+    # fails = (diff*10).type(torch.int64)
+    # assert torch.allclose(diff, torch.zeros_like(diff), atol=2, rtol=0.5), f"Verification failed: {fails}"
 
 
 def run() -> None:
