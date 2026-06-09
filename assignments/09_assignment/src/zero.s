@@ -4,10 +4,14 @@
   .p2align 4
   .type zero,@function
 zero:
-  // Sets 512 bytes to zero
+  // Sets 512 (8*64) bytes to zero
   mov r0, #0
   vbcst.16 x0, r0
-  ret lr
+  nop
+  vst x0, [p0], #64
+  vst x0, [p0], #64
+  vst x0, [p0], #64
+  vst x0, [p0], #64; ret lr
   vst x0, [p0], #64                   // Delay Slot 5
   vst x0, [p0], #64                   // Delay Slot 4
   vst x0, [p0], #64                   // Delay Slot 3
