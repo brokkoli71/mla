@@ -30,7 +30,7 @@ When writing the output tensor, its layout is changed back to a matrix layout (`
 ## Task 0 - Setup
 
 **Copy** your XDNA tensor kernel into the `src/` directory and copy your `verify()` function to the driver.
-Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
+Set the maximum absolute error to `2.5` and the maximum relative error to `0.5`.
 
 ## Task 1 - MLIR-AIE operations
 
