@@ -37,6 +37,9 @@ Assignments
    * - 09
      - XDNA GEMM
      - 06/08
+   * - 10
+     - Using the whole NPU
+     - 06/15
 
 ----
 
