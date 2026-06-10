@@ -58,9 +58,14 @@ str += "".join(f"""
       aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, {2048*x+16384}][2, 4, 16, 16][64, 16, 128, 1]) {{id = 5 : i64, metadata = @out_L2L3_{x}}} : memref<256x128xbf16>"""
     for x in range(8))
 
+
+
+
+str += "".join(f"""
+    aie.objectfifo @in0_L2L1_{x}(%mem_tile_{x}_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {{%tile_{x}_2, %tile_{x}_3, %tile_{x}_4, %tile_{x}_5}}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>"""
+    for x in range(8))
+
 # print to file
 with open(__file__.replace(".py", "d.mlir"), "w") as f:
     f.write(str)
-
-
 
