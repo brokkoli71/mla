@@ -4,7 +4,7 @@ import itertools
 x = 0
 y = 0
 str = "".join(f"""
-    %core_{x}_2 = aie.core(%tile_{x}_{y+2}) {{
+    %core_{x}_{y+2} = aie.core(%tile_{x}_{y+2}) {{
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -45,7 +45,17 @@ str += "".join(f"""
     for x in range(8))
 
 str += "".join(f"""
-    aie.objectfifo.link [@out_L1L2_{x}_0, out_L1L2_{x}_1, out_L1L2_{x}_2, out_L1L2_{x}_3] -> [@out_L2L3_{x}]([0, 256, 512, 768] [])"""
+    aie.objectfifo.link [@out_L1L2_{x}_0, @out_L1L2_{x}_1, @out_L1L2_{x}_2, @out_L1L2_{x}_3] -> [@out_L2L3_{x}]([0, 256, 512, 768] [])"""
+    for x in range(8))
+
+str += "\n//a=0, with x offsets per column"
+
+str += "".join(f"""
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, {2048*x}][2, 4, 16, 16][64, 16, 128, 1]) {{id = 0 : i64, metadata = @out_L2L3_{x}}} : memref<256x128xbf16>"""
+    for x in range(8))
+str += "\n//a=1"
+str += "".join(f"""
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, {2048*x+16384}][2, 4, 16, 16][64, 16, 128, 1]) {{id = 5 : i64, metadata = @out_L2L3_{x}}} : memref<256x128xbf16>"""
     for x in range(8))
 
 # print to file

@@ -30,7 +30,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_0_2 = aie.core(%tile_0_3) {
+    %core_0_3 = aie.core(%tile_0_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -61,7 +61,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_0_2 = aie.core(%tile_0_4) {
+    %core_0_4 = aie.core(%tile_0_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -92,7 +92,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_0_2 = aie.core(%tile_0_5) {
+    %core_0_5 = aie.core(%tile_0_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -154,7 +154,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_1_2 = aie.core(%tile_1_3) {
+    %core_1_3 = aie.core(%tile_1_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -185,7 +185,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_1_2 = aie.core(%tile_1_4) {
+    %core_1_4 = aie.core(%tile_1_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -216,7 +216,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_1_2 = aie.core(%tile_1_5) {
+    %core_1_5 = aie.core(%tile_1_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -278,7 +278,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_2_2 = aie.core(%tile_2_3) {
+    %core_2_3 = aie.core(%tile_2_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -309,7 +309,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_2_2 = aie.core(%tile_2_4) {
+    %core_2_4 = aie.core(%tile_2_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -340,7 +340,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_2_2 = aie.core(%tile_2_5) {
+    %core_2_5 = aie.core(%tile_2_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -402,7 +402,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_3_2 = aie.core(%tile_3_3) {
+    %core_3_3 = aie.core(%tile_3_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -433,7 +433,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_3_2 = aie.core(%tile_3_4) {
+    %core_3_4 = aie.core(%tile_3_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -464,7 +464,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_3_2 = aie.core(%tile_3_5) {
+    %core_3_5 = aie.core(%tile_3_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -526,7 +526,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_4_2 = aie.core(%tile_4_3) {
+    %core_4_3 = aie.core(%tile_4_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -557,7 +557,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_4_2 = aie.core(%tile_4_4) {
+    %core_4_4 = aie.core(%tile_4_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -588,7 +588,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_4_2 = aie.core(%tile_4_5) {
+    %core_4_5 = aie.core(%tile_4_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -650,7 +650,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_5_2 = aie.core(%tile_5_3) {
+    %core_5_3 = aie.core(%tile_5_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -681,7 +681,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_5_2 = aie.core(%tile_5_4) {
+    %core_5_4 = aie.core(%tile_5_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -712,7 +712,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_5_2 = aie.core(%tile_5_5) {
+    %core_5_5 = aie.core(%tile_5_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -774,7 +774,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_6_2 = aie.core(%tile_6_3) {
+    %core_6_3 = aie.core(%tile_6_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -805,7 +805,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_6_2 = aie.core(%tile_6_4) {
+    %core_6_4 = aie.core(%tile_6_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -836,7 +836,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_6_2 = aie.core(%tile_6_5) {
+    %core_6_5 = aie.core(%tile_6_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -898,7 +898,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_7_2 = aie.core(%tile_7_3) {
+    %core_7_3 = aie.core(%tile_7_3) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -929,7 +929,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_7_2 = aie.core(%tile_7_4) {
+    %core_7_4 = aie.core(%tile_7_4) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -960,7 +960,7 @@
     } {stack_size = 1024 : i32}
 
 
-    %core_7_2 = aie.core(%tile_7_5) {
+    %core_7_5 = aie.core(%tile_7_5) {
       %c0 = arith.constant 0 : index
       %c4294967295 = arith.constant 4294967295 : index
       %c1 = arith.constant 1 : index
@@ -1031,11 +1031,29 @@
     aie.objectfifo @out_L2L3_5(%mem_tile_5_1 dimensionsToStream [<size = 2, stride = 128>, <size = 8, stride = 8>, <size = 2, stride = 64>, <size = 8, stride = 1>], {%shim_noc_tile_5_0}, 2 : i32) : !aie.objectfifo<memref<16x16xbf16>>
     aie.objectfifo @out_L2L3_6(%mem_tile_6_1 dimensionsToStream [<size = 2, stride = 128>, <size = 8, stride = 8>, <size = 2, stride = 64>, <size = 8, stride = 1>], {%shim_noc_tile_6_0}, 2 : i32) : !aie.objectfifo<memref<16x16xbf16>>
     aie.objectfifo @out_L2L3_7(%mem_tile_7_1 dimensionsToStream [<size = 2, stride = 128>, <size = 8, stride = 8>, <size = 2, stride = 64>, <size = 8, stride = 1>], {%shim_noc_tile_7_0}, 2 : i32) : !aie.objectfifo<memref<16x16xbf16>>
-    aie.objectfifo.link [@out_L1L2_0_0, out_L1L2_0_1, out_L1L2_0_2, out_L1L2_0_3] -> [@out_L2L3_0]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_1_0, out_L1L2_1_1, out_L1L2_1_2, out_L1L2_1_3] -> [@out_L2L3_1]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_2_0, out_L1L2_2_1, out_L1L2_2_2, out_L1L2_2_3] -> [@out_L2L3_2]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_3_0, out_L1L2_3_1, out_L1L2_3_2, out_L1L2_3_3] -> [@out_L2L3_3]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_4_0, out_L1L2_4_1, out_L1L2_4_2, out_L1L2_4_3] -> [@out_L2L3_4]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_5_0, out_L1L2_5_1, out_L1L2_5_2, out_L1L2_5_3] -> [@out_L2L3_5]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_6_0, out_L1L2_6_1, out_L1L2_6_2, out_L1L2_6_3] -> [@out_L2L3_6]([0, 256, 512, 768] [])
-    aie.objectfifo.link [@out_L1L2_7_0, out_L1L2_7_1, out_L1L2_7_2, out_L1L2_7_3] -> [@out_L2L3_7]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_0_0, @out_L1L2_0_1, @out_L1L2_0_2, @out_L1L2_0_3] -> [@out_L2L3_0]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_1_0, @out_L1L2_1_1, @out_L1L2_1_2, @out_L1L2_1_3] -> [@out_L2L3_1]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_2_0, @out_L1L2_2_1, @out_L1L2_2_2, @out_L1L2_2_3] -> [@out_L2L3_2]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_3_0, @out_L1L2_3_1, @out_L1L2_3_2, @out_L1L2_3_3] -> [@out_L2L3_3]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_4_0, @out_L1L2_4_1, @out_L1L2_4_2, @out_L1L2_4_3] -> [@out_L2L3_4]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_5_0, @out_L1L2_5_1, @out_L1L2_5_2, @out_L1L2_5_3] -> [@out_L2L3_5]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_6_0, @out_L1L2_6_1, @out_L1L2_6_2, @out_L1L2_6_3] -> [@out_L2L3_6]([0, 256, 512, 768] [])
+    aie.objectfifo.link [@out_L1L2_7_0, @out_L1L2_7_1, @out_L1L2_7_2, @out_L1L2_7_3] -> [@out_L2L3_7]([0, 256, 512, 768] [])
+//a=0, with x offsets per column
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 0][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 2048][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 4096][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 6144][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 8192][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 10240][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 12288][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 14336][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
+//a=1
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 16384][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 18432][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 20480][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 22528][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 24576][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 26624][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 28672][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 30720][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
