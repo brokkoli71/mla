@@ -2,9 +2,70 @@ module {
   aie.device(npu2) {
     func.func private @matmul(memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) attributes {link_with = "matmul.o"}
     func.func private @zero(memref<2x2x8x8xbf16>) attributes {link_with = "zero.o"}
+    
     %shim_noc_tile_0_0 = aie.tile(0, 0)
+    %shim_noc_tile_1_0 = aie.tile(1, 0)
+    %shim_noc_tile_2_0 = aie.tile(2, 0)
+    %shim_noc_tile_3_0 = aie.tile(3, 0)
+    %shim_noc_tile_4_0 = aie.tile(4, 0)
+    %shim_noc_tile_5_0 = aie.tile(5, 0)
+    %shim_noc_tile_6_0 = aie.tile(6, 0)
+    %shim_noc_tile_7_0 = aie.tile(7, 0)
+
     %mem_tile_0_1 = aie.tile(0, 1)
+    %mem_tile_1_1 = aie.tile(1, 1)
+    %mem_tile_2_1 = aie.tile(2, 1)
+    %mem_tile_3_1 = aie.tile(3, 1)
+    %mem_tile_4_1 = aie.tile(4, 1)
+    %mem_tile_5_1 = aie.tile(5, 1)
+    %mem_tile_6_1 = aie.tile(6, 1)
+    %mem_tile_7_1 = aie.tile(7, 1)
+
     %tile_0_2 = aie.tile(0, 2)
+    %tile_1_2 = aie.tile(1, 2)
+    %tile_2_2 = aie.tile(2, 2)
+    %tile_3_2 = aie.tile(3, 2)
+    %tile_4_2 = aie.tile(4, 2)
+    %tile_5_2 = aie.tile(5, 2)
+    %tile_6_2 = aie.tile(6, 2)
+    %tile_7_2 = aie.tile(7, 2)
+
+    %tile_0_3 = aie.tile(0, 3)
+    %tile_1_3 = aie.tile(1, 3)
+    %tile_2_3 = aie.tile(2, 3)
+    %tile_3_3 = aie.tile(3, 3)
+    %tile_4_3 = aie.tile(4, 3)
+    %tile_5_3 = aie.tile(5, 3)
+    %tile_6_3 = aie.tile(6, 3)
+    %tile_7_3 = aie.tile(7, 3)
+    
+    %tile_0_4 = aie.tile(0, 4)
+    %tile_1_4 = aie.tile(1, 4)
+    %tile_2_4 = aie.tile(2, 4)
+    %tile_3_4 = aie.tile(3, 4)
+    %tile_4_4 = aie.tile(4, 4)
+    %tile_5_4 = aie.tile(5, 4)
+    %tile_6_4 = aie.tile(6, 4)
+    %tile_7_4 = aie.tile(7, 4)
+    
+    %tile_0_5 = aie.tile(0, 5)
+    %tile_1_5 = aie.tile(1, 5)
+    %tile_2_5 = aie.tile(2, 5)
+    %tile_3_5 = aie.tile(3, 5)
+    %tile_4_5 = aie.tile(4, 5)
+    %tile_5_5 = aie.tile(5, 5)
+    %tile_6_5 = aie.tile(6, 5)
+    %tile_7_5 = aie.tile(7, 5)
+
+    %tile_0_6 = aie.tile(0, 6)
+    %tile_1_6 = aie.tile(1, 6)
+    %tile_2_6 = aie.tile(2, 6)
+    %tile_3_6 = aie.tile(3, 6)
+    %tile_4_6 = aie.tile(4, 6)
+    %tile_5_6 = aie.tile(5, 6)
+    %tile_6_6 = aie.tile(6, 6)
+    %tile_7_6 = aie.tile(7, 6)
+    
     aie.objectfifo @in0_L3L2_0(%shim_noc_tile_0_0, {%mem_tile_0_1}, 2 : i32) : !aie.objectfifo<memref<16x64xbf16>>
     aie.objectfifo @in0_L2L1_0(%mem_tile_0_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_0_2}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>
     aie.objectfifo.link [@in0_L3L2_0] -> [@in0_L2L1_0]([] [])
@@ -20,9 +81,9 @@ module {
       %c1 = arith.constant 1 : index
       scf.for %arg0 = %c0 to %c4294967295 step %c1 {
         %c0_1 = arith.constant 0 : index
-        %c128 = arith.constant 128 : index
+        %c4 = arith.constant 128 : index
         %c1_1 = arith.constant 1 : index
-        scf.for %i_ab = %c0_1 to %c128 step %c1_1 {
+        scf.for %i_ab = %c0_1 to %c4 step %c1_1 {
           %buffer_out = aie.objectfifo.acquire @out_L1L2_0_0(Produce, 1) : !aie.objectfifosubview<memref<2x2x8x8xbf16>>
           %out = aie.objectfifo.subview.access %buffer_out[0] : !aie.objectfifosubview<memref<2x2x8x8xbf16>> -> memref<2x2x8x8xbf16>
           func.call @zero(%out) : (memref<2x2x8x8xbf16>) -> ()
