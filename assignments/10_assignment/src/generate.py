@@ -36,6 +36,21 @@ str = "".join(f"""
 
 """ for x,y in itertools.product(range(8), range(4)))
 
+str += "".join(f"""
+    aie.objectfifo @out_L1L2_{x}_{y}(%tile_{x}_{y+2}, {{%mem_tile_{x}_1}}, 2 : i32) : !aie.objectfifo<memref<2x2x8x8xbf16>>"""
+    for x,y in itertools.product(range(8), range(4)))
+
+str += "".join(f"""
+    aie.objectfifo @out_L2L3_{x}(%mem_tile_{x}_1 dimensionsToStream [<size = 2, stride = 128>, <size = 8, stride = 8>, <size = 2, stride = 64>, <size = 8, stride = 1>], {{%shim_noc_tile_{x}_0}}, 2 : i32) : !aie.objectfifo<memref<16x16xbf16>>"""
+    for x in range(8))
+
+str += "".join(f"""
+    aie.objectfifo.link [@out_L1L2_{x}_0, out_L1L2_{x}_1, out_L1L2_{x}_2, out_L1L2_{x}_3] -> [@out_L2L3_{x}]([0, 256, 512, 768] [])"""
+    for x in range(8))
+
 # print to file
 with open(__file__.replace(".py", "d.mlir"), "w") as f:
     f.write(str)
+
+
+
