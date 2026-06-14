@@ -1159,21 +1159,21 @@ module {
       aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 98304][2, 16, 16, 64][0, 64, 1024, 1]) {id = 1 : i64, metadata = @in0_L3L2_6} : memref<256x1024xbf16>
       aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 114688][2, 16, 16, 64][0, 64, 1024, 1]) {id = 1 : i64, metadata = @in0_L3L2_7} : memref<256x1024xbf16>
       
-      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 0][2, 16, 64, 16][64, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_0} : memref<1024x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 16][2, 16, 64, 16][64, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_1} : memref<1024x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 32][2, 16, 64, 16][64, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_2} : memref<1024x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 48][2, 16, 64, 16][64, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_3} : memref<1024x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 0][2, 16, 64, 16][64, 8192, 128, 1]) {id =  3 : i64, metadata = @in1_L3L2_0} : memref<1024x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 16][2, 16, 64, 16][64, 8192, 128, 1]) {id = 3 : i64, metadata = @in1_L3L2_1} : memref<1024x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 32][2, 16, 64, 16][64, 8192, 128, 1]) {id = 3 : i64, metadata = @in1_L3L2_2} : memref<1024x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 48][2, 16, 64, 16][64, 8192, 128, 1]) {id = 3 : i64, metadata = @in1_L3L2_3} : memref<1024x128xbf16>
 
       // a=1 -> 131072 offset for arg0
 
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 131072][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_0} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 147456][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_1} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 163840][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_2} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 180224][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_3} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 196608][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_4} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 212992][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_5} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 229376][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_6} : memref<256x1024xbf16>
-      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 245760][2, 16, 16, 64][0, 64, 1024, 1]) {id = 3 : i64, metadata = @in0_L3L2_7} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 131072][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_0} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 147456][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_1} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 163840][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_2} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 180224][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_3} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 196608][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_4} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 212992][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_5} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 229376][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_6} : memref<256x1024xbf16>
+      aiex.npu.dma_memcpy_nd(%arg0[0, 0, 0, 245760][2, 16, 16, 64][0, 64, 1024, 1]) {id = 2 : i64, metadata = @in0_L3L2_7} : memref<256x1024xbf16>
       
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 0][2, 16, 64, 16][64, 8192, 128, 1]) {id =  4 : i64, metadata = @in1_L3L2_0} : memref<1024x128xbf16>
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 16][2, 16, 64, 16][64, 8192, 128, 1]) {id = 4 : i64, metadata = @in1_L3L2_1} : memref<1024x128xbf16>
@@ -1181,23 +1181,23 @@ module {
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 48][2, 16, 64, 16][64, 8192, 128, 1]) {id = 4 : i64, metadata = @in1_L3L2_3} : memref<1024x128xbf16>
 
 //a=0, with x offsets per column
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 0][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 2048][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 4096][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 6144][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 8192][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 10240][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 12288][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 14336][2, 4, 16, 16][64, 16, 128, 1]) {id = 0 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 0][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 2048][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 4096][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 6144][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 8192][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 10240][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 12288][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 14336][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
 //a=1
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 16384][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 18432][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 20480][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 22528][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 24576][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 26624][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 28672][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
-      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 30720][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 16384][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 18432][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_1} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 20480][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_2} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 22528][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_3} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 24576][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_4} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 26624][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 28672][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
+      aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 30720][2, 4, 16, 16][64, 16, 128, 1]) {id = 6 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
 
       aiex.npu.dma_wait {symbol = @out_L2L3_0}
       aiex.npu.dma_wait {symbol = @out_L2L3_1}
