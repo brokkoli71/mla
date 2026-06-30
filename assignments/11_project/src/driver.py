@@ -1,5 +1,5 @@
 """
-XRT Python driver for Assignment 08.
+XRT Python driver for Assignment 09.
 
 Usage (from the assignment directory, after building xclbins):
     python3 src/driver.py
@@ -23,19 +23,10 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     in0, in1 : bfloat16 torch tensors
     out : bfloat16 torch tensor
     """
-    # assert zero initial output
-    expected = in0[:, :8] @ in1[:8, :]
-    #expected = in0 @ in1
-    #fails = ((out-expected)*10).type(torch.int64)
-    #print(f"Verification failed: {fails}")
-    #print(out[:8,:8].shape, expected.shape)
-    print(((out[8:,:8]-expected[8:,:8])*3).type(torch.int64))
-    #print(out[8:,:8])
-    #print(out)
-    #print(expected)
 
-    #assert torch.allclose(expected[:8,:8], out[:8,:8], atol=0.5)
-    assert torch.allclose(expected, out, atol=0.5)
+    ref = in0 @ in1
+
+    torch.testing.assert_close(out, ref, atol=1.2, rtol=0.05)
 
 
 def run() -> None:
@@ -55,20 +46,11 @@ def run() -> None:
     bo_instr = pyxrt.bo(device, insts.nbytes, pyxrt.bo.cacheable, kernel.group_id(1))
     bo_instr.write(insts.tobytes(), 0)
     bo_instr.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, insts.nbytes, 0)
+
     torch.manual_seed(42)
-
-    data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
-    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
-    data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
-
-    #data_in0.fill_(2)
-    #data_in1.fill_(3)
-
-
-    # data_in0 = torch.arange(0, 1024, dtype=torch.bfloat16).reshape(16, 64)
-    # data_in1 = torch.arange(0, 1024, dtype=torch.bfloat16).reshape(64, 16)
-    # data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
-
+    data_in0 = torch.randn(256, 1024, dtype=torch.bfloat16)
+    data_in1 = torch.randn(1024, 128, dtype=torch.bfloat16)
+    data_out = torch.zeros(256, 128, dtype=torch.bfloat16)
 
     # Create buffer objects with corresponding size
     bo_in0 = pyxrt.bo(device, data_in0.nbytes, pyxrt.bo.host_only, 0)
