@@ -4,7 +4,7 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul clean
+.PHONY: all obj_matmul run_matmul run_verify_bfp16 clean
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
@@ -29,6 +29,10 @@ build/final_matmul.xclbin: build/zero.o build/matmul.o src/matmul.mlir | build/
 
 run_matmul: build/final_matmul.xclbin
 	python3 src/driver.py
+
+run_verify_bfp16: build/final_matmul.xclbin
+	python3 src/driver_verify_conversion.py
+
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 
