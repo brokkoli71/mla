@@ -10,7 +10,7 @@ KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
 obj_matmul: build/matmul.o
 
-build/matmul.o: src/matmul.s | build/
+build/matmul.o: src/size16/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 build/zero.o: src/zero.s | build/
@@ -25,12 +25,19 @@ build/final_matmul.xclbin: build/zero.o build/matmul.o src/matmul.mlir | build/
 	    --aie-generate-xclbin --xclbin-name=final_matmul.xclbin \
 	    ../src/matmul.mlir
 
+build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.mlir | build/
+	cd build && aiecc.py --alloc-scheme=basic-sequential --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_size16.bin \
+	    --aie-generate-xclbin --xclbin-name=final_matmul_size16.xclbin \
+	    ../src/size16/matmul.mlir
+
 # ── Run targets ───────────────────────────────────────────────────────────────
 
 run_matmul: build/final_matmul.xclbin
 	python3 src/driver.py
 
-run_verify_bfp16: build/final_matmul.xclbin
+run_verify_bfp16: build/final_matmul_size16.xclbin
 	python3 src/driver_verify_conversion.py
 
 
