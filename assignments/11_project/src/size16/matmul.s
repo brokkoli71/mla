@@ -149,33 +149,9 @@ matmul:
 //   in0: mk = 16x64 BFP16
 //   in1: nk = 16x64 BFP16
 //   out: mn = 16x16 BFP16
-mov crrnd, #12
-mov r0, #780
-nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.fill.512 [p0, lf0, r24]     ; vldb.fill.512 [p1, lf1, r25]   ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm0, dm0, ex0, ex1, r0   ; vlda.fill.512 [p0, lf0, r24]     ; vldb.fill.512 [p1, lf1, r25]   ; nops                                ; nopm                    ; nopx
-vmac dm1, dm1, ex2, ex1, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm2, dm2, ex0, ex3, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm3, dm3, ex2, ex3, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops  
-
-vmac dm0, dm0, ex0, ex1, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm1, dm1, ex0, ex1, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm2, dm2, ex0, ex1, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm3, dm3, ex0, ex1, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-vmac dm3, dm3, ex0, ex1, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                        ; nopm                    ; nopx
-
-nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
-nopv                          ; vlda.fill.512 [p0, lf0, r24]     ; vldb.fill.512 [p1, lf1, r25]   ; nops                                ; nopm                    ; nopx
-
-nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
+//nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
+nopv                          ; vlda.fill.512 [p0, lf0, r24]     ; vldb.fill.512 [p1, lf1, r25]   ; nops                                ; mov r0, #780          ; nopx
+nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; mov crrnd, #12          ; nopx
 nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
 
 nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
@@ -188,7 +164,6 @@ vmac dm0, dm0, ex0, ex1, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 
 vmac dm1, dm1, ex0, ex3, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
 vmac dm2, dm2, ex2, ex1, r0   ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
 vmac dm3, dm3, ex2, ex3, r0   ; nopa                             ; nopb                           ; nops  
-
 vmac dm0, dm0, ex0, ex1, r0   ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
 vmac dm1, dm1, ex0, ex3, r0   ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
 vmac dm2, dm2, ex2, ex1, r0   ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
