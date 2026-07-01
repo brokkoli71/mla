@@ -1,4 +1,5 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python.defaultInterpreterPath": "/home/mla02/.cache/nix-amd-npu/venv-iron/bin/python3"
+    "python.defaultInterpreterPath": "/home/mla02/.cache/nix-amd-npu/venv-iron/bin/python3",
+    "workbench.editor.enablePreviewFromQuickOpen": true
 }

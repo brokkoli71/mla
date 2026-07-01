@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Project Pitch – MLA</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+<style>
+  :root {
+    --gpu:  #3b9ede;
+    --npu:  #e85d4a;
+    --gold: #f0c030;
+  }
+  .reveal section { text-align: left; }
+  .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: 0; }
+  .reveal h2 { font-size: 1.35em; margin-bottom: 0.55em; border-bottom: 1px solid #333; padding-bottom: 0.2em; }
+
+  /* tags */
+  .tag { display:inline-block; padding:2px 10px; border-radius:4px;
+         font-size:0.65em; font-weight:bold; vertical-align:middle; margin-right:8px; }
+  .gpu { background: var(--gpu); color:#fff; }
+  .npu { background: var(--npu); color:#fff; }
+
+  /* boxes */
+  .box { border:1.5px solid #555; border-radius:6px; padding:10px 14px; margin:6px 0; }
+  .box-b { border-color: var(--gpu);  background: rgba(59,158,222,.08); }
+  .box-r { border-color: var(--npu);  background: rgba(232,93,74,.08); }
+  .box-g { border-color: var(--gold); background: rgba(240,192,48,.08); }
+
+  /* layout */
+  .two  { display:grid; grid-template-columns:1fr 1fr; gap:1.4em; }
+  .three{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:1em; }
+  .center { text-align:center; }
+
+  /* text helpers */
+  .reveal ul { margin-left:1.3em; }
+  .reveal li { font-size:0.82em; margin-bottom:0.35em; }
+  .s  { font-size:0.78em; }
+  .xs { font-size:0.68em; }
+  .hi { color: var(--gold); font-weight:bold; }
+  .dim-M { color:#4fc3f7; }
+  .dim-K { color:#ef9a9a; }
+  .dim-C { color:#a5d6a7; }
+  .reveal pre { width:100%; box-shadow:none; margin:6px 0; }
+  .reveal code { font-size:0.82em; }
+
+  /* section divider */
+  .divider { text-align:center !important; }
+  .divider h2 { font-size:1.9em !important; border:none; margin-top:18%; }
+  .divider p  { color:#aaa; }
+
+  /* result cards */
+  .card { border-radius:8px; padding:14px; text-align:center; font-size:0.78em; }
+  .card strong { display:block; margin-bottom:0.4em; font-size:1.05em; }
+  .card-b { background:rgba(59,158,222,.15); border:1px solid var(--gpu); }
+  .card-r { background:rgba(232,93,74,.15);  border:1px solid var(--npu); }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ============================================================ -->
+<!-- TITLE                                                        -->
+<!-- ============================================================ -->
+<section class="center">
+  <h1 style="font-size:1.7em; margin-bottom:0.3em;">Project Pitch</h1>
+  <p style="color:#aaa;">Machine Learning Architectures &nbsp;·&nbsp; 17 June 2026</p>
+  <div class="two" style="margin-top:2em;">
+    <div class="box box-b center">
+      <div style="font-size:0.65em; color:var(--gpu); font-weight:bold; margin-bottom:0.4em;">PROJECT 1 · cuTile / GPU</div>
+      <strong>Kernel Fusion Beyond 1D:<br/>Tiled Attention</strong>
+    </div>
+    <div class="box box-r center">
+      <div style="font-size:0.65em; color:var(--npu); font-weight:bold; margin-bottom:0.4em;">PROJECT 2 · XDNA NPU</div>
+      <strong>Light-Field Contraction<br/>on the Full NPU</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROJECT 1 DIVIDER                                            -->
+<!-- ============================================================ -->
+<section class="divider">
+  <h2><span class="tag gpu">PROJECT 1</span>Kernel Fusion Beyond 1D</h2>
+  <p>cuTile &nbsp;·&nbsp; GPU &nbsp;·&nbsp; Tiled Attention</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- P1 S1 – INTRO / GAP                                         -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag gpu">GPU</span>The Paper and Its Gap</h2>
+  <div class="two">
+    <div>
+      <p class="s" style="color:#aaa; margin-bottom:0.5em;">Dodović et al., <em>Electronics</em> 2026</p>
+      <ul>
+        <li>4 ops: elem-add, FMA, linear+ReLU, map-reduce — all on <strong>1D arrays</strong></li>
+        <li>Plain CUDA C&nbsp;kernels, RTX&nbsp;3080&nbsp;Ti / T4 / A100</li>
+        <li>Memory-bound ops: <span class="hi">1.5×–3.13×</span> from fusion</li>
+        <li>Atomic reduction: <span style="color:#ef9a9a;">≈ 1×</span> — contention dominates</li>
+        <li>Block-level reduction: effective again, up to 2×</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box box-g" style="margin-bottom:0.8em;">
+        <strong style="color:var(--gold);">Paper's own future work:</strong><br/>
+        <span class="s"><em>"Extending the analysis to operations on multi-dimensional tensors with higher arithmetic intensity, such as matrix multiplication and convolution"</em></span>
+      </div>
+      <div class="box s">
+        cuTile is exactly the right tool to address this — tile-level control, explicit GEMM primitives, flexible epilog fusion
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P1 S2 – PROBLEM                                             -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag gpu">GPU</span>Problem — Attention is a Different Regime</h2>
+  <div class="two">
+    <div>
+      <p class="s" style="color:#aaa;">Attention (unfused, per head):</p>
+<pre><code class="language-python">S = Q @ K.T        # materialised  (N × N)
+P = softmax(S)     # materialised  (N × N)
+O = P @ V          # output        (N × D)
+</code></pre>
+      <ul style="margin-top:0.6em;">
+        <li>3 kernel launches, 2 global write-read round-trips</li>
+        <li>N=4096, FP16: <span class="hi">32 MB per head</span> — just for intermediates</li>
+        <li>Grows quadratically with sequence length</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box box-b s">
+        <strong>Paper's regime:</strong> fusion <em>speeds up</em> computation<br/>
+        (saves 33–57 % bandwidth, same result either way)
+      </div>
+      <div class="box box-g s" style="margin-top:0.7em;">
+        <strong style="color:var(--gold);">Our regime:</strong> fusion <em>enables</em> computation<br/>
+        (unfused is infeasible at long context — OOM or orders-of-magnitude slower)
+      </div>
+      <p class="xs" style="margin-top:0.6em; color:#aaa;">
+        Fusion benefit <em>grows</em> with N — qualitatively opposite of the paper's findings.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P1 S3 – SOLUTION                                            -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag gpu">GPU</span>Proposed Solution</h2>
+  <div class="two">
+    <div>
+      <strong>Fused tiled attention in cuTile</strong>
+      <ul style="margin-top:0.4em;">
+        <li><code>ct.mma</code> for Q×K<sup>T</sup> and P×V tiles (A03 kernel as base)</li>
+        <li><code>ct.reduce</code> for online softmax inside the tile loop</li>
+        <li>No N×N materialisation — O(tile) SRAM at any time</li>
+      </ul>
+      <div class="box box-b xs" style="margin-top:0.7em;">
+        <strong>Tile loop (single kernel):</strong><br/>
+        for each tile along the K-dim:<br/>
+        &nbsp;&nbsp;S_tile &larr; Q_tile &times; K_tile &nbsp;&nbsp;<em>(ct.mma)</em><br/>
+        &nbsp;&nbsp;update running (max, &Sigma;) for softmax<br/>
+        &nbsp;&nbsp;O_tile &larr; O_tile + softmax_tile &times; V_tile
+      </div>
+    </div>
+    <div>
+      <strong>Roofline-guided analysis</strong>
+      <ul style="margin-top:0.4em;">
+        <li>Compute arithmetic intensity for each variant analytically</li>
+        <li>Predict the crossover point before measuring</li>
+        <li>Use Config/Optimizer (A05) to characterise both unfused and fused</li>
+      </ul>
+      <div class="box s" style="margin-top:0.7em;">
+        <strong>Traffic comparison:</strong><br/>
+        Unfused: reads Q,K,V,S,P — writes S,P,O<br/>
+        Fused:&nbsp;&nbsp;&nbsp;reads Q,K,V &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; — writes O<br/>
+        <span class="hi">Eliminated: 2 × N² intermediate arrays</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P1 S4 – RESULTS                                             -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag gpu">GPU</span>Expected Results &amp; Insights</h2>
+  <div class="three" style="margin-top:0.6em;">
+    <div class="card card-b">
+      <strong>Speedup grows with N</strong>
+      At small N: similar to paper.<br/>
+      At large N: super-linear advantage — unfused cannot compete.
+    </div>
+    <div class="card card-b">
+      <strong>Roofline crossover</strong>
+      Fused attention shifts from memory-bound to compute-bound as N grows — quantified by arithmetic intensity.
+    </div>
+    <div class="card card-b">
+      <strong>Tile size trade-off</strong>
+      Optimal tile for online softmax ≠ optimal for pure matmul. New dimension of tuning vs. A03.
+    </div>
+  </div>
+  <div class="box box-g s" style="margin-top:1em;">
+    <strong style="color:var(--gold);">Key differentiator from the paper:</strong>
+    we study fusion as a <em>feasibility</em> enabler, not only a bandwidth optimisation —
+    and we address the paper's explicit open question on multi-dimensional, high-intensity operations.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROJECT 2 DIVIDER                                            -->
+<!-- ============================================================ -->
+<section class="divider">
+  <h2><span class="tag npu">PROJECT 2</span>Light-Field Contraction on XDNA</h2>
+  <p>XDNA NPU &nbsp;·&nbsp; MLIR-AIE &nbsp;·&nbsp; Full 8×4 Tile Array</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- P2 S1 – INTRO                                               -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag npu">NPU</span>Introduction — Bridging A06 and A10</h2>
+  <div class="two">
+    <div>
+      <strong>What the course gave us:</strong>
+      <ul style="margin-top:0.4em;">
+        <li><strong>A06:</strong> light-field tensor-ring contraction<br/>
+            <code style="font-size:0.78em;">acspx, bspy &rarr; abcxy</code><br/>
+            implemented end-to-end in cuTile on the DGX</li>
+        <li><strong>A08:</strong> hand-scheduled VLIW GEMM kernel on XDNA2</li>
+        <li><strong>A09:</strong> MLIR-AIE data movement, sequential c-loop</li>
+        <li><strong>A10:</strong> full 8×4 NPU, spatial broadcasting of inputs</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box box-r center" style="margin-top:0.8em; padding:1.2em;">
+        <strong>The question:</strong><br/><br/>
+        Can we run the same A06 contraction<br/>on the full XDNA NPU?<br/><br/>
+        <span class="xs" style="color:#aaa;">
+          GPU reference exists &rarr; direct performance comparison.<br/>
+          All building blocks are in place.
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P2 S2 – PROBLEM                                             -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag npu">NPU</span>Problem — Mapping an Irregular Einsum to XDNA</h2>
+  <div class="two">
+    <div>
+      <p class="s" style="color:#aaa; margin-bottom:0.4em;">
+        Dimension classification of <code>acspx, bspy &rarr; abcxy</code>:
+      </p>
+      <table class="s" style="border-collapse:collapse; width:100%;">
+        <tr style="border-bottom:1px solid #444;">
+          <th style="padding:4px 10px; text-align:left;">Type</th>
+          <th style="padding:4px 10px; text-align:left;">Dims</th>
+          <th style="padding:4px 10px; text-align:left;">Role</th>
+        </tr>
+        <tr><td class="dim-M" style="padding:4px 10px;">M / N</td><td style="padding:4px 10px;"><code>x, y</code></td><td style="padding:4px 10px;">output spatial</td></tr>
+        <tr><td class="dim-K" style="padding:4px 10px;">K</td><td style="padding:4px 10px;"><code>s, p</code></td><td style="padding:4px 10px;">contracted (inner)</td></tr>
+        <tr><td class="dim-C" style="padding:4px 10px;">C</td><td style="padding:4px 10px;"><code>a, b, c</code></td><td style="padding:4px 10px;">batch (outer)</td></tr>
+      </table>
+      <ul style="margin-top:0.8em;">
+        <li>NPU kernel expects fixed layout: <code class="xs">prmk × rqkn &rarr; pqmn</code></li>
+        <li>K-dims <code>s, p</code> are not aligned to NPU's <code>r, k</code> tile structure</li>
+        <li>C-batch dims <code>a, b, c</code> need loop orchestration across the tile array</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box box-r s">
+        <strong>Open design questions:</strong>
+        <ul style="margin-top:0.4em;">
+          <li>How to decompose the multi-K contraction into XDNA-compatible GEMMs via Config/Optimizer?</li>
+          <li>Which of <code>x, y</code> maps to NPU columns vs. rows — and which input should be broadcast along which axis?</li>
+          <li>Padding overhead for non-power-of-2 <code>s, p</code> dimensions?</li>
+          <li>How do the <code>a, b</code> outer loops interact with the A10 broadcasting scheme?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P2 S3 – SOLUTION                                            -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag npu">NPU</span>Proposed Solution</h2>
+  <div class="two">
+    <div>
+      <strong>Decomposition &amp; kernel</strong>
+      <ul style="margin-top:0.4em;">
+        <li>Config/Optimizer (A05): classify <code>s, p</code> as sequential K-dims, decompose into XDNA-compatible GEMM sequence</li>
+        <li>Reuse A08 VLIW tensor kernel for the inner matmul tile (no changes needed)</li>
+        <li>Sequentialise over <code>c</code> (A09 pattern), parallelise <code>x, y</code> spatially across the 8×4 grid</li>
+      </ul>
+    </div>
+    <div>
+      <strong>MLIR-AIE data movement</strong>
+      <div class="box box-r xs" style="margin-top:0.5em; line-height:1.8em;">
+        L3 &nbsp;&nbsp;→ shim DMA &nbsp;&nbsp;&nbsp;full tensors <code>acspx</code>, <code>bspy</code><br/>
+        &darr; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; tile + broadcast for <code>x</code> (cols), <code>y</code> (rows)<br/>
+        L2 &nbsp;&nbsp;→ object FIFO &nbsp;A10 broadcast pattern<br/>
+        &darr; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>prmk</code> / <code>rqkn</code> tiles per compute tile<br/>
+        L1 &nbsp;&nbsp;→ VLIW kernel &nbsp;A08 matmul + accumulate<br/>
+        &uarr; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; join column outputs (A10 pattern)<br/>
+        L3 &nbsp;&nbsp;← shim DMA &nbsp;&nbsp;&nbsp;output <code>abcxy</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- P2 S4 – RESULTS                                             -->
+<!-- ============================================================ -->
+<section>
+  <h2><span class="tag npu">NPU</span>Expected Results &amp; Insights</h2>
+  <div class="three" style="margin-top:0.6em;">
+    <div class="card card-r">
+      <strong>TFLOPS comparison</strong>
+      Direct apples-to-apples: NPU vs. A06 cuTile GPU result on the same contraction and data.
+    </div>
+    <div class="card card-r">
+      <strong>Bottleneck analysis</strong>
+      Hypothesis: data movement for <code>s, p</code> padding dominates over compute on the NPU.
+    </div>
+    <div class="card card-r">
+      <strong>Spatial dim selection</strong>
+      Which assignment of <code>x, y</code> to rows/cols minimises DMA volume? Insight into the A10 broadcasting trade-off for non-square contractions.
+    </div>
+  </div>
+  <div class="box box-g s" style="margin-top:1em;">
+    <strong style="color:var(--gold);">Core insight:</strong>
+    this contraction was never designed for NPU execution.
+    We will quantify the mismatch between the XDNA's fixed GEMM layout and the natural tensor structure of the light-field decomposition — and measure whether spatial parallelism closes the gap.
+  </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    plugins: [ RevealHighlight ],
+  });
+</script>
+</body>
+</html>
