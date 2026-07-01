@@ -66,10 +66,30 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     in1 : (64, 16) bfloat16  — matrix B, original K×N layout (not transposed)
     out : (16, 16) bfloat16  — NPU output
     """
-    ref = bfp16ebs8_quantize(in0).float() @ bfp16ebs8_quantize(in1).float()
-    ref = ref.to(torch.bfloat16)
+    ref_bfp16 = bfp16ebs8_quantize(in0).float() @ bfp16ebs8_quantize(in1).float()
+    ref_plain  = in0.float() @ in1.float()
 
-    # BFP16 accumulation error: atol ~2 × max_element × K × mantissa_err
+    print("\n--- Debug ---")
+    print(f"NPU output range:   [{out.float().min():.3f}, {out.float().max():.3f}]")
+    print(f"BFP16 ref range:    [{ref_bfp16.min():.3f}, {ref_bfp16.max():.3f}]")
+    print(f"Plain A@B range:    [{ref_plain.min():.3f}, {ref_plain.max():.3f}]")
+
+    diff = (out.float() - ref_bfp16).abs()
+    zeros = (out.float() == 0).sum().item()
+    print(f"Zero elements in output: {zeros}/256")
+    print(f"Max abs error vs BFP16 ref: {diff.max():.3f}")
+    print(f"Mean abs error vs BFP16 ref: {diff.mean():.3f}")
+
+    diff_plain = (out.float() - ref_plain).abs()
+    print(f"Max abs error vs plain A@B: {diff_plain.max():.3f}")
+
+    # Check if output looks like a permuted version of the reference
+    print(f"\nNPU out (first 4×4):\n{out[:4,:4].float()}")
+    print(f"BFP16 ref (first 4×4):\n{ref_bfp16[:4,:4]}")
+    print(f"Plain ref (first 4×4):\n{ref_plain[:4,:4]}")
+    print("--- End debug ---\n")
+
+    ref = ref_bfp16.to(torch.bfloat16)
     torch.testing.assert_close(out, ref, atol=4.0, rtol=0.05)
 
 
