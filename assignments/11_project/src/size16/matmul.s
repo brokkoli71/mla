@@ -153,7 +153,6 @@ matmul:
 nopv                          ; vlda.fill.512 [p0, lf0, r24]     ; vldb.fill.512 [p1, lf1, r25]   ; nops                                ; mov r0, #780          ; nopx
 nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; mov crrnd, #12          ; nopx
 nopv                          ; vlda.pop.576 ex2 [p0 lf0, r24]   ; vldb.pop.576 ex3 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
-
 nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
 nopv                          ; nopa                             ; nopb                           ; nops                                ; nopm                    ; nopx
 nopv                          ; vlda.pop.576 ex0 [p0 lf0, r24]   ; vldb.pop.576 ex1 [p1 lf1, r25] ; nops                                ; nopm                    ; nopx
