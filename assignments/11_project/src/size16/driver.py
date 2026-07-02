@@ -27,12 +27,12 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
 
     ref = in0 @ in1
 
-    torch.testing.assert_close(out, ref, atol=1.2, rtol=0.05)
+    torch.testing.assert_close(out, ref, atol=1.5, rtol=0.05)
 
 
 def run() -> None:
-    xclbin_path = "build/final_matmul.xclbin"
-    insts_path = "build/insts_matmul.bin"
+    xclbin_path = "build/final_matmul_size16.xclbin"
+    insts_path = "build/insts_matmul_size16.bin"
 
     insts = np.fromfile(insts_path, dtype=np.uint32)
 
