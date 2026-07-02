@@ -4,7 +4,7 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul run_verify_bfp16 clean
+.PHONY: all obj_matmul run_matmul16 clean
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
@@ -18,12 +18,6 @@ build/zero.o: src/zero.s | build/
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
 
-build/final_matmul.xclbin: build/zero.o build/matmul.o src/matmul.mlir | build/
-	cd build && aiecc.py --alloc-scheme=basic-sequential --no-compile-host \
-	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
-	    --aie-generate-npu-insts --npu-insts-name=insts_matmul.bin \
-	    --aie-generate-xclbin --xclbin-name=final_matmul.xclbin \
-	    ../src/matmul.mlir
 
 build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=basic-sequential --no-compile-host \
@@ -34,12 +28,8 @@ build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.
 
 # ── Run targets ───────────────────────────────────────────────────────────────
 
-run_matmul: build/final_matmul.xclbin
-	python3 src/driver.py
-
-run_verify_bfp16: build/final_matmul_size16.xclbin
-	python3 src/driver_verify_conversion.py
-
+run_matmul: build/final_matmul_size16.xclbin
+	python3 src/size16/driver.py
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 
