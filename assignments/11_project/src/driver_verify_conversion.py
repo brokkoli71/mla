@@ -67,26 +67,39 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     out : (16, 16) bfloat16  — NPU output
     """
     ref_bfp16 = bfp16ebs8_quantize(in0).float() @ bfp16ebs8_quantize(in1).float()
-    ref_plain  = in0.float() @ in1.float()
+
+    tol = dict(atol=4.0, rtol=0.05)
+    ok = torch.isclose(out.float(), ref_bfp16, **tol)
 
     print("\n--- Debug ---")
     print(f"NPU output range:   [{out.float().min():.3f}, {out.float().max():.3f}]")
     print(f"BFP16 ref range:    [{ref_bfp16.min():.3f}, {ref_bfp16.max():.3f}]")
-    print(f"Plain A@B range:    [{ref_plain.min():.3f}, {ref_plain.max():.3f}]")
+    print(f"Mismatched: {(~ok).sum().item()}/256")
 
-    diff = (out.float() - ref_bfp16).abs()
-    zeros = (out.float() == 0).sum().item()
-    print(f"Zero elements in output: {zeros}/256")
-    print(f"Max abs error vs BFP16 ref: {diff.max():.3f}")
-    print(f"Mean abs error vs BFP16 ref: {diff.mean():.3f}")
+    # Spatial error map (. = match, X = mismatch)
+    print("\nError map (X=mismatch, .=ok), rows=output rows 0-15, cols=0-15:")
+    for i in range(16):
+        row = "".join("." if ok[i,j] else "X" for j in range(16))
+        print(f"  row {i:2d}: {row}")
 
-    diff_plain = (out.float() - ref_plain).abs()
-    print(f"Max abs error vs plain A@B: {diff_plain.max():.3f}")
+    # Check common permutations
+    out_f = out.float()
+    ref_f = ref_bfp16.float()
+    checks = {
+        "out vs ref":          (out_f, ref_f),
+        "out.T vs ref":        (out_f.T, ref_f),
+        "out vs ref.T":        (out_f, ref_f.T),
+        "out[swap p] vs ref":  (torch.cat([out_f[8:], out_f[:8]], 0), ref_f),
+        "out[swap q] vs ref":  (torch.cat([out_f[:,8:], out_f[:,:8]], 1), ref_f),
+        "out[swap p&q] vs ref":(torch.cat([out_f[8:], out_f[:8]], 0)[:, [*range(8,16), *range(8)]], ref_f),
+    }
+    print("\nPermutation checks (max abs err):")
+    for name, (a, b) in checks.items():
+        err = (a - b).abs().max().item()
+        print(f"  {name:30s}: {err:.3f}")
 
-    # Check if output looks like a permuted version of the reference
-    print(f"\nNPU out (first 4×4):\n{out[:4,:4].float()}")
-    print(f"BFP16 ref (first 4×4):\n{ref_bfp16[:4,:4]}")
-    print(f"Plain ref (first 4×4):\n{ref_plain[:4,:4]}")
+    print(f"\nNPU out (8×8 top-left tile):\n{out_f[:8,:8]}")
+    print(f"BFP16 ref (8×8 top-left tile):\n{ref_f[:8,:8]}")
     print("--- End debug ---\n")
 
     ref = ref_bfp16.to(torch.bfloat16)
