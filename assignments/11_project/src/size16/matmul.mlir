@@ -1,14 +1,14 @@
 module {
   aie.device(npu2) {
     // note, that matrix B was transposed
-    func.func private @matmul(memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) attributes {link_with = "matmul.o"}
-    func.func private @conv(memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>) attributes {link_with = "matmul.o"}
+    func.func private @matmul(memref<8x2x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) attributes {link_with = "matmul.o"}
+    func.func private @conv(memref<8x2x8x8xbf16>, memref<8x2x8x8xbf16>) attributes {link_with = "matmul.o"}
     func.func private @zero(memref<2x2x8x8xbf16>) attributes {link_with = "zero.o"}
     %shim_noc_tile_0_0 = aie.tile(0, 0)
     %mem_tile_0_1 = aie.tile(0, 1)
     %tile_0_2 = aie.tile(0, 2)
     aie.objectfifo @in0_L3L2_0(%shim_noc_tile_0_0, {%mem_tile_0_1}, 2 : i32) : !aie.objectfifo<memref<16x64xbf16>>
-    aie.objectfifo @in0_L2L1_0(%mem_tile_0_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_0_2}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>
+    aie.objectfifo @in0_L2L1_0(%mem_tile_0_1 dimensionsToStream [<size = 8, stride = 8>, <size = 2, stride = 512>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_0_2}, 2 : i32) : !aie.objectfifo<memref<8x2x8x8xbf16>>
     aie.objectfifo.link [@in0_L3L2_0] -> [@in0_L2L1_0]([] [])
     aie.objectfifo @in1_L3L2_0(%shim_noc_tile_0_0, {%mem_tile_0_1}, 2 : i32) : !aie.objectfifo<memref<16x64xbf16>>
     aie.objectfifo @in1_L2L1_0(%mem_tile_0_1 dimensionsToStream [<size = 8, stride = 8>, <size = 2, stride = 512>, <size = 8, stride = 1>, <size = 8, stride = 64>], {%tile_0_2}, 2 : i32) : !aie.objectfifo<memref<8x2x8x8xbf16>>
@@ -24,12 +24,12 @@ module {
           %buffer_out = aie.objectfifo.acquire @out_L1L2_0_0(Produce, 1) : !aie.objectfifosubview<memref<2x2x8x8xbf16>>
           %out = aie.objectfifo.subview.access %buffer_out[0] : !aie.objectfifosubview<memref<2x2x8x8xbf16>> -> memref<2x2x8x8xbf16>
           func.call @zero(%out) : (memref<2x2x8x8xbf16>) -> ()
-            %buffer_in0 = aie.objectfifo.acquire @in0_L2L1_0(Consume, 1) : !aie.objectfifosubview<memref<2x8x8x8xbf16>>
-            %in0 = aie.objectfifo.subview.access %buffer_in0[0] : !aie.objectfifosubview<memref<2x8x8x8xbf16>> -> memref<2x8x8x8xbf16>
+            %buffer_in0 = aie.objectfifo.acquire @in0_L2L1_0(Consume, 1) : !aie.objectfifosubview<memref<8x2x8x8xbf16>>
+            %in0 = aie.objectfifo.subview.access %buffer_in0[0] : !aie.objectfifosubview<memref<8x2x8x8xbf16>> -> memref<8x2x8x8xbf16>
             %buffer_in1 = aie.objectfifo.acquire @in1_L2L1_0(Consume, 1) : !aie.objectfifosubview<memref<8x2x8x8xbf16>>
             %in1 = aie.objectfifo.subview.access %buffer_in1[0] : !aie.objectfifosubview<memref<8x2x8x8xbf16>> -> memref<8x2x8x8xbf16>
-            func.call @conv(%in0, %in1) : (memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>) -> ()
-            func.call @matmul(%in0, %in1, %out) : (memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) -> ()
+            func.call @conv(%in0, %in1) : (memref<8x2x8x8xbf16>, memref<8x2x8x8xbf16>) -> ()
+            func.call @matmul(%in0, %in1, %out) : (memref<8x2x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) -> ()
             aie.objectfifo.release @in0_L2L1_0(Consume, 1)
             aie.objectfifo.release @in1_L2L1_0(Consume, 1)
           aie.objectfifo.release @out_L1L2_0_0(Produce, 1)
