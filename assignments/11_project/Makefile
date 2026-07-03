@@ -20,7 +20,7 @@ build/zero.o: src/zero.s | build/
 
 
 build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.mlir | build/
-	cd build && aiecc.py --alloc-scheme=basic-sequential --no-compile-host \
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
 	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_size16.bin \
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size16.xclbin \
