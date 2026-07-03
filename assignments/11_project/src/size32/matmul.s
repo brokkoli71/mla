@@ -245,15 +245,15 @@ vmac.f dm2, dm2, ex2, ex1, r0 ; nopa                               ; nopb       
 vmac.f dm4, dm4, ex2, ex3, r0 ; nopa                               ; nopb                               ; nops                               ; nopm           ; nopx
 vmac.f dm0, dm0, ex0, ex1, r0 ; nopa                               ; nopb                               ; nops                               ; nopm           ; nopx
 vmac.f dm1, dm1, ex0, ex3, r0 ; nopa                               ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm2, dm2, ex2, ex1, r0 ; nopa                               ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm4, dm4, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cml3 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm0, dm0, ex0, ex1, r0 ; vlda.conv.fp32.bf16 cmh3 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm1, dm1, ex0, ex3, r0 ; vlda.conv.fp32.bf16 cml0 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm2, dm2, ex2, ex1, r0 ; vlda.conv.fp32.bf16 cmh0 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
-vmac.f dm4, dm4, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cml1 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx //0000
-nopv                          ; vlda.conv.fp32.bf16 cmh1 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm2, dm2, ex2, ex1, r0 ; vlda.conv.fp32.bf16 cml3 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm4, dm4, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cmh3 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm0, dm0, ex0, ex1, r0 ; vlda.conv.fp32.bf16 cml0 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm1, dm1, ex0, ex3, r0 ; vlda.conv.fp32.bf16 cmh0 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm2, dm2, ex2, ex1, r0 ; vlda.conv.fp32.bf16 cml1 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+vmac.f dm4, dm4, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cmh1 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx //0000
 nopv                          ; vlda.conv.fp32.bf16 cml2 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
-nopv                          ; vlda.conv.fp32.bf16 cmh2 [p2], #64 ; nopb                               ; vst.conv.bf16.fp32 cml0, [p2], #64 ; nopm           ; nopx
+nopv                          ; vlda.conv.fp32.bf16 cmh2 [p2], #64 ; nopb                               ; nops                               ; nopm           ; nopx
+nopv                          ; nopa                               ; nopb                               ; vst.conv.bf16.fp32 cml0, [p2], #64 ; nopm           ; nopx
 nopv                          ; nopa                               ; nopb                               ; vst.conv.bf16.fp32 cmh0, [p2], #64 ; nopm           ; nopx
 nopv                          ; nopa                               ; nopb                               ; vst.conv.bf16.fp32 cml1, [p2], #64 ; nopm           ; nopx
 nopv                          ; nopa                               ; nopb                               ; vst.conv.bf16.fp32 cmh1, [p2], #64 ; nopm           ; nopx

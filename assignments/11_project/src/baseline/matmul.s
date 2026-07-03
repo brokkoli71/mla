@@ -26,7 +26,7 @@ matmul:
   nopv                          ; vlda.conv.fp32.bf16 cml1, [p2], #64 ; vldb x9, [p1], #64 ; padds [p4], m0                      ; movxm r1, #16256
   nopv                          ; vlda.conv.fp32.bf16 cml4, [p4], #64 ; nopb               ; nops                                ; vbcst.16 x10, r1        ; nopx
   nopv                          ; vlda.conv.fp32.bf16 cmh4, [p4], #64 ; vldb x8, [p1], #64 ; nops                                ; vbcst.16 x11, r1        ; movx r6, #60
-  nopv                          ; vlda.conv.fp32.bf16 cmh1, [p2], #64 ; vldb x9, [p1], #64 ; nops                                ; mov r0, #780            ; movx r2, #52
+  nopv                          ; vlda.conv.fp32.bf16 cmh1, [p2], #64 ; vldb x9, [p1], #64 ; nops                                ; mov r0, #780          ; movx r2, #52
   nopv                          ; vlda.conv.fp32.bf16 cml4, [p0], #64 ; nopb               ; nops                                ; vshuffle x6, x8, x9, r2 ; movx r3, #53
 
   nopv                          ; vlda.conv.fp32.bf16 cmh4, [p0], #64 ; vldb x8, [p1], #64 ; nops                                ; vshuffle x7, x8, x9, r3 ; nopx
