@@ -32,8 +32,8 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
 
 
 def run() -> None:
-    xclbin_path = "build/final_matmul_size16.xclbin"
-    insts_path = "build/insts_matmul_size16.bin"
+    xclbin_path = "build/final_matmul_size32.xclbin"
+    insts_path = "build/insts_matmul_size32.bin"
 
     insts = np.fromfile(insts_path, dtype=np.uint32)
 

@@ -4,13 +4,16 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul16 clean
+.PHONY: all obj_matmul run_matmul run_matmul32 clean
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
 obj_matmul: build/matmul.o
 
 build/matmul.o: src/size16/matmul.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
+build/matmul_size32.o: src/size32/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 build/zero.o: src/zero.s | build/
@@ -26,10 +29,20 @@ build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size16.xclbin \
 	    ../src/size16/matmul.mlir
 
+build/final_matmul_size32.xclbin: build/zero.o build/matmul_size32.o src/size32/matmul.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_size32.bin \
+	    --aie-generate-xclbin --xclbin-name=final_matmul_size32.xclbin \
+	    ../src/size32/matmul.mlir
+
 # ── Run targets ───────────────────────────────────────────────────────────────
 
 run_matmul: build/final_matmul_size16.xclbin
 	python3 src/size16/driver.py
+
+run_matmul32: build/final_matmul_size32.xclbin
+	python3 src/size32/driver.py
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 

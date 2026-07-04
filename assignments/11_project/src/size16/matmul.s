@@ -152,7 +152,7 @@ vmac.f dm2, dm2, ex2, ex1, r0 ; nopa                             ; nopb         
 vmac.f dm3, dm3, ex2, ex3, r0 ; nopa                             ; nopb                             ; nops                               ; nopm           ; nopx
 nopv                          ; nopa                             ; nopb                             ; nops                               ; nopm           ; nopx
 nopv                          ; nopa                             ; nopb                             ; nops                               ; nopm           ; nopx
-nopv                          ; nopa                             ; nopb                             ; vst.conv.bf16.fp32 cml0, [p2], #64 ; nopm           ; nopx
+nopv                          ; nopa                             ; nopb                             ; vst.conv.bf16.fp32 cml0, [p2], #64 ;                ; nopx
 nopv                          ; nopa                             ; nopb                             ; vst.conv.bf16.fp32 cmh0, [p2], #64 ; nopm           ; nopx
 nopv                          ; nopa                             ; nopb                             ; vst.conv.bf16.fp32 cml1, [p2], #64 ; nopm           ; nopx
 nopv                          ; nopa                             ; nopb                             ; vst.conv.bf16.fp32 cmh1, [p2], #64 ; nopm           ; ret lr
