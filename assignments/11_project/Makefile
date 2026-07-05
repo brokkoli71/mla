@@ -4,7 +4,7 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul run_matmul32 clean
+.PHONY: all obj_matmul run_matmul run_matmul32 run_matmul64 clean
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
@@ -16,10 +16,16 @@ build/matmul.o: src/size16/matmul.s | build/
 build/matmul_size32.o: src/size32/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
-build/zero.o: src/zero.s | build/
+build/zero.o: src/size16/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 build/zero_size32.o: src/size32/zero.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
+build/matmul_size64.o: src/size64/matmul.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
+build/zero_size64.o: src/size64/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
@@ -39,6 +45,13 @@ build/final_matmul_size32.xclbin: build/zero_size32.o build/matmul_size32.o src/
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size32.xclbin \
 	    ../src/size32/matmul.mlir
 
+build/final_matmul_size64.xclbin: build/zero_size64.o build/matmul_size64.o src/size64/matmul.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_size64.bin \
+	    --aie-generate-xclbin --xclbin-name=final_matmul_size64.xclbin \
+	    ../src/size64/matmul.mlir
+
 # ── Run targets ───────────────────────────────────────────────────────────────
 
 run_matmul: build/final_matmul_size16.xclbin
@@ -46,6 +59,9 @@ run_matmul: build/final_matmul_size16.xclbin
 
 run_matmul32: build/final_matmul_size32.xclbin
 	python3 src/size32/driver.py
+
+run_matmul64: build/final_matmul_size64.xclbin
+	python3 src/size64/driver.py
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 
