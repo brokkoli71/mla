@@ -19,6 +19,9 @@ build/matmul_size32.o: src/size32/matmul.s | build/
 build/zero.o: src/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
+build/zero_size32.o: src/size32/zero.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
 # ── xclbin targets ────────────────────────────────────────────────────────────
 
 
@@ -29,7 +32,7 @@ build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size16.xclbin \
 	    ../src/size16/matmul.mlir
 
-build/final_matmul_size32.xclbin: build/zero.o build/matmul_size32.o src/size32/matmul.mlir | build/
+build/final_matmul_size32.xclbin: build/zero_size32.o build/matmul_size32.o src/size32/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
 	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_size32.bin \
