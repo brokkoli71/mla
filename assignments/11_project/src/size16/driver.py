@@ -7,6 +7,8 @@ Usage (from the assignment directory, after building xclbins):
 Requires: pyxrt, numpy, torch
 """
 
+import os
+
 import numpy as np
 import torch
 import pyxrt
@@ -32,8 +34,8 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
 
 
 def run() -> None:
-    xclbin_path = "build/final_matmul_size16.xclbin"
-    insts_path = "build/insts_matmul_size16.bin"
+    xclbin_path = os.environ.get("MATMUL_XCLBIN", "build/final_matmul_size16.xclbin")
+    insts_path = os.environ.get("MATMUL_INSTS", "build/insts_matmul_size16.bin")
 
     insts = np.fromfile(insts_path, dtype=np.uint32)
 
