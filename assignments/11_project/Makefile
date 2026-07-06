@@ -4,7 +4,7 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul run_matmul32 run_matmul64 clean
+.PHONY: all obj_matmul run_matmul run_matmul32 run_matmul64 run_baseline benchmark clean
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
@@ -26,6 +26,9 @@ build/matmul_size64.o: src/size64/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 build/zero_size64.o: src/size64/zero.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
+build/matmul_baseline.o: src/baseline/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
@@ -52,6 +55,13 @@ build/final_matmul_size64.xclbin: build/zero_size64.o build/matmul_size64.o src/
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size64.xclbin \
 	    ../src/size64/matmul.mlir
 
+build/final_matmul_baseline_size16.xclbin: build/zero.o build/matmul_baseline.o src/baseline/matmul.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_baseline_size16.bin \
+	    --aie-generate-xclbin --xclbin-name=final_matmul_baseline_size16.xclbin \
+	    ../src/baseline/matmul.mlir
+
 # ── Run targets ───────────────────────────────────────────────────────────────
 
 run_matmul: build/final_matmul_size16.xclbin
@@ -62,6 +72,12 @@ run_matmul32: build/final_matmul_size32.xclbin
 
 run_matmul64: build/final_matmul_size64.xclbin
 	python3 src/size64/driver.py
+
+run_baseline: build/final_matmul_baseline_size16.xclbin
+	python3 src/baseline/driver.py
+
+benchmark: build/final_matmul_size16.xclbin build/final_matmul_size32.xclbin build/final_matmul_size64.xclbin build/final_matmul_baseline_size16.xclbin
+	python3 src/benchmark.py
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 

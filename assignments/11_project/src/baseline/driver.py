@@ -1,8 +1,12 @@
 """
-XRT Python driver for Assignment 09.
+XRT Python driver for the baseline (fused conv+matmul) size16 kernel.
+
+Unlike the unfused size16/size32/size64 kernels, the baseline takes in1 in
+its natural K x N layout (no host-side transpose) and writes the output
+already in row-major order (no host-side un-tiling).
 
 Usage (from the assignment directory, after building xclbins):
-    python3 src/driver.py
+    python3 src/baseline/driver.py
 
 Requires: pyxrt, numpy, torch
 """
@@ -16,24 +20,23 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
     """
     Verify the NPU output against a CPU reference.
 
-    Computation: out = in0 @ in1  (in1 is the original, non-transposed B)
+    Computation: out = in0 @ in1
 
     Parameters
     ----------
-    in0 : bfloat16 torch tensor, shape (32, 64)
-    in1 : bfloat16 torch tensor, shape (64, 32) — natural K×N layout
-    out : bfloat16 torch tensor, shape (32, 32)
+    in0 : bfloat16 torch tensor, shape (16, 64)
+    in1 : bfloat16 torch tensor, shape (64, 16)
+    out : bfloat16 torch tensor, shape (16, 16)
     """
 
     ref = in0 @ in1
 
     torch.testing.assert_close(out, ref, atol=0.5, rtol=0.02)
-    #torch.testing.assert_close(out, ref, atol=0.1, rtol=0.01)
 
 
 def run() -> None:
-    xclbin_path = "build/final_matmul_size32.xclbin"
-    insts_path = "build/insts_matmul_size32.bin"
+    xclbin_path = "build/final_matmul_baseline_size16.xclbin"
+    insts_path = "build/insts_matmul_baseline_size16.bin"
 
     insts = np.fromfile(insts_path, dtype=np.uint32)
 
@@ -50,19 +53,18 @@ def run() -> None:
     bo_instr.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, insts.nbytes, 0)
 
     torch.manual_seed(42)
-    data_in0 = torch.randn(32, 64, dtype=torch.bfloat16)
-    data_in1 = torch.randn(64, 32, dtype=torch.bfloat16)   # natural K×N layout
-    data_in1_t = data_in1.t().contiguous()                  # transposed to N×K for kernel
-    data_out = torch.zeros(32, 32, dtype=torch.bfloat16)
+    data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
+    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)   # natural K x N layout
+    data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
 
     # Create buffer objects with corresponding size
     bo_in0 = pyxrt.bo(device, data_in0.nbytes, pyxrt.bo.host_only, 0)
-    bo_in1 = pyxrt.bo(device, data_in1_t.nbytes, pyxrt.bo.host_only, 0)
+    bo_in1 = pyxrt.bo(device, data_in1.nbytes, pyxrt.bo.host_only, 0)
     bo_out = pyxrt.bo(device, data_out.nbytes, pyxrt.bo.host_only, 0)
 
     # Copy data to buffer objects
     bo_in0.write(data_in0.view(torch.int16).numpy().tobytes(), 0)
-    bo_in1.write(data_in1_t.view(torch.int16).numpy().tobytes(), 0)
+    bo_in1.write(data_in1.view(torch.int16).numpy().tobytes(), 0)
     bo_out.write(data_out.view(torch.int16).numpy().tobytes(), 0)
 
     # View buffer objects as torch tensor
@@ -71,23 +73,23 @@ def run() -> None:
         dtype=torch.bfloat16,
         count=np.prod(data_in0.shape)
     ).view(data_in0.shape)
-    tensor_in1_t = torch.frombuffer(
+    tensor_in1 = torch.frombuffer(
         bo_in1.map(),
         dtype=torch.bfloat16,
-        count=np.prod(data_in1_t.shape)
-    ).view(data_in1_t.shape)
+        count=np.prod(data_in1.shape)
+    ).view(data_in1.shape)
     tensor_out = torch.frombuffer(
         bo_out.map(),
         dtype=torch.bfloat16,
         count=np.prod(data_out.shape)
     ).view(data_out.shape)
     assert torch.equal(data_in0, tensor_in0)
-    assert torch.equal(data_in1_t, tensor_in1_t)
+    assert torch.equal(data_in1, tensor_in1)
     assert torch.equal(data_out, tensor_out)
 
     # Sync buffer objects: to device
     bo_in0.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_in0.nbytes, 0)
-    bo_in1.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_in1_t.nbytes, 0)
+    bo_in1.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_in1.nbytes, 0)
     bo_out.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, data_out.nbytes, 0)
 
     h = kernel(3, bo_instr, insts.nbytes, bo_in0, bo_in1, bo_out)
@@ -96,20 +98,9 @@ def run() -> None:
     # Sync output buffer object: from device
     bo_out.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_FROM_DEVICE, data_out.nbytes, 0)
 
-    # The kernel writes the output tiles in [p_hi][q_hi][p_lo][q_lo][m][n] order
-    # (2x2x2x2x8x8). The core-tile DMA is limited to 3 dims, so this final
-    # reshape to row-major 32x32 is done here on the host:
-    #   row = p_hi*16 + p_lo*8 + m,   col = q_hi*16 + q_lo*8 + n
-    out_rowmajor = (
-        tensor_out.reshape(2, 2, 2, 2, 8, 8)
-        .permute(0, 2, 4, 1, 3, 5)      # -> [p_hi][p_lo][m][q_hi][q_lo][n]
-        .reshape(32, 32)
-        .contiguous()
-    )
+    verify(tensor_in0, tensor_in1, tensor_out)
 
-    verify(tensor_in0, data_in1, out_rowmajor)
-
-    print("[PASS] matmul verification passed.")
+    print("[PASS] baseline matmul verification passed.")
 
 
 if __name__ == "__main__":
