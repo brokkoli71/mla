@@ -29,7 +29,7 @@ module {
             func.call @matmul(%in0, %in1, %out) : (memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) -> ()
             aie.objectfifo.release @in0_L2L1_0(Consume, 1)
             aie.objectfifo.release @in1_L2L1_0(Consume, 1)
-´          aie.objectfifo.release @out_L1L2_0_0(Produce, 1)
+            aie.objectfifo.release @out_L1L2_0_0(Produce, 1)
       }
       aie.end
     } {stack_size = 1024 : i32}

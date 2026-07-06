@@ -31,6 +31,9 @@ def verify(in0: torch.Tensor, in1: torch.Tensor, out: torch.Tensor) -> None:
 
     ref = in0 @ in1
 
+    print(out)
+    print(ref)
+
     torch.testing.assert_close(out, ref, atol=0.5, rtol=0.02)
 
 
