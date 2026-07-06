@@ -33,7 +33,6 @@ build/matmul_baseline.o: src/baseline/matmul.s | build/
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
 
-
 build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
@@ -77,7 +76,7 @@ run_baseline: build/final_matmul_baseline_size16.xclbin
 	python3 src/baseline/driver.py
 
 benchmark: build/final_matmul_size16.xclbin build/final_matmul_size32.xclbin build/final_matmul_size64.xclbin build/final_matmul_baseline_size16.xclbin
-	python3 src/benchmark.py
+	python3 src/benchmark/benchmark.py
 
 # ── Utility ───────────────────────────────────────────────────────────────────
 

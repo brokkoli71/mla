@@ -1,6 +1,6 @@
 module {
   aie.device(npu2) {
-    func.func private @matmul(memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) attributes {link_with = "matmul.o"}
+    func.func private @matmul(memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) attributes {link_with = "matmul_baseline.o"}
     func.func private @zero(memref<2x2x8x8xbf16>) attributes {link_with = "zero.o"}
     %shim_noc_tile_0_0 = aie.tile(0, 0)
     %mem_tile_0_1 = aie.tile(0, 1)
