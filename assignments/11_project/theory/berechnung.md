@@ -5,7 +5,7 @@ dann 9 zeilen bis ende
 
 anzahl vmac: (x/8)^2 viele 8x8x64 blöcke also (x/8)^2 * 8 vmacs = x^2 / 8 für 8x8x8
 baseline zeilen: 21 + 9 + 1.5 * vmacs = 30 + 3 / 16 * x^2 
-unfused conv zeilen: 
+unfused conv zeilen: 10 warmup, 12 cycles für 10 stores für 8x64 matrix (je matrix) also 10 + 3x
 unfused matmul zeilen: 13 + 11 + vmacs = 24 + 1 / 8 * x^2
 
 size16:
