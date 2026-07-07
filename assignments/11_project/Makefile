@@ -4,7 +4,11 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul run_matmul_opt run_matmul32 run_matmul64 run_baseline benchmark clean
+.PHONY: all obj_matmul run_matmul run_matmul_opt run_matmul32 run_matmul64 run_baseline run_param benchmark clean
+
+PARAM_DIR = src/baseline_parameterized
+PARAM_OBJ = tensor_kernel_m1xn1xk1_bf16_bf16_bf16
+PARAM_MLIR = tensor_kernel_m1xn1xk1_bf16_bf16_bf16__m2_3xn2_1xk1_8
 
 # ── Object file targets ───────────────────────────────────────────────────────
 
@@ -37,6 +41,10 @@ build/zero_size64.o: src/size64/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 build/matmul_baseline.o: src/baseline/matmul.s | build/
+	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
+
+# Object name must match link_with in the parameterized .mlir.
+build/$(PARAM_OBJ).o: $(PARAM_DIR)/$(PARAM_OBJ).s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # ── xclbin targets ────────────────────────────────────────────────────────────
@@ -76,6 +84,13 @@ build/final_matmul_baseline_size16.xclbin: build/zero.o build/matmul_baseline.o 
 	    --aie-generate-xclbin --xclbin-name=final_matmul_baseline_size16.xclbin \
 	    ../src/baseline/matmul.mlir
 
+build/final_tensor_kernel_param.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARAM_MLIR).mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param.bin \
+	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param.xclbin \
+	    ../$(PARAM_DIR)/$(PARAM_MLIR).mlir
+
 # ── Run targets ───────────────────────────────────────────────────────────────
 
 run_matmul: build/final_matmul_size16.xclbin
@@ -94,6 +109,9 @@ run_matmul64: build/final_matmul_size64.xclbin
 
 run_baseline: build/final_matmul_baseline_size16.xclbin
 	python3 src/baseline/driver.py
+
+run_param: build/final_tensor_kernel_param.xclbin
+	python3 $(PARAM_DIR)/driver.py
 
 benchmark: build/final_matmul_size16.xclbin build/final_matmul_size32.xclbin build/final_matmul_size64.xclbin build/final_matmul_baseline_size16.xclbin
 	python3 src/benchmark/benchmark.py
