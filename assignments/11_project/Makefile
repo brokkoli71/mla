@@ -4,7 +4,7 @@ AIE_INC      := $(MLIR_AIE_DIR)/include
 PEANO_CC     = $(PEANO_INSTALL_DIR)/bin/clang++
 KERNEL_FLAGS = -O2 -std=c++20 --target=aie2p-none-unknown-elf -I $(AIE_INC)
 
-.PHONY: all obj_matmul run_matmul run_matmul_opt run_matmul32 run_matmul64 run_baseline run_param benchmark clean
+.PHONY: all obj_matmul run_matmul run_matmul_opt run_matmul32 run_matmul64 run_baseline run_param run_param32 run_param64 benchmark clean
 
 PARAM_DIR = src/baseline_parameterized
 PARAM_OBJ = tensor_kernel_m1xn1xk1_bf16_bf16_bf16
@@ -96,6 +96,38 @@ build/final_tensor_kernel_param.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARA
 	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param.bin \
 	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param.xclbin \
 	    ../$(PARAM_DIR)/$(PARAM_MLIR).mlir
+
+# Parameterized-kernel instances at the benchmark's square shapes:
+#   size32 -> m2=n2=2 (32x32), size64 -> m2=n2=4 (64x64), k1=8 (K=64).
+# Plain instances are for correctness (run_param32/64); the *_benchmark ones
+# loop the compute call 100000x per launch for the benchmark's timing.
+build/final_tensor_kernel_param32.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARAM_OBJ)__m2_2xn2_2xk1_8.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param32.bin \
+	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param32.xclbin \
+	    ../$(PARAM_DIR)/$(PARAM_OBJ)__m2_2xn2_2xk1_8.mlir
+
+build/final_tensor_kernel_param64.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARAM_OBJ)__m2_4xn2_4xk1_8.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param64.bin \
+	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param64.xclbin \
+	    ../$(PARAM_DIR)/$(PARAM_OBJ)__m2_4xn2_4xk1_8.mlir
+
+build/final_tensor_kernel_param_benchmark_size32.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARAM_OBJ)__m2_2xn2_2xk1_8_benchmark.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param_benchmark_size32.bin \
+	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param_benchmark_size32.xclbin \
+	    ../$(PARAM_DIR)/$(PARAM_OBJ)__m2_2xn2_2xk1_8_benchmark.mlir
+
+build/final_tensor_kernel_param_benchmark_size64.xclbin: build/$(PARAM_OBJ).o $(PARAM_DIR)/$(PARAM_OBJ)__m2_4xn2_4xk1_8_benchmark.mlir | build/
+	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
+	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
+	    --aie-generate-npu-insts --npu-insts-name=insts_tensor_kernel_param_benchmark_size64.bin \
+	    --aie-generate-xclbin --xclbin-name=final_tensor_kernel_param_benchmark_size64.xclbin \
+	    ../$(PARAM_DIR)/$(PARAM_OBJ)__m2_4xn2_4xk1_8_benchmark.mlir
 
 # ── Benchmark xclbin targets ─────────────────────────────────────────────────
 #
@@ -220,9 +252,21 @@ run_baseline: build/final_matmul_baseline_size16.xclbin
 run_param: build/final_tensor_kernel_param.xclbin
 	python3 $(PARAM_DIR)/driver.py
 
+run_param32: build/final_tensor_kernel_param32.xclbin
+	TK_M2=2 TK_N2=2 TK_K2=8 \
+	TK_XCLBIN=build/final_tensor_kernel_param32.xclbin \
+	TK_INSTS=build/insts_tensor_kernel_param32.bin \
+	python3 $(PARAM_DIR)/driver.py
+
+run_param64: build/final_tensor_kernel_param64.xclbin
+	TK_M2=4 TK_N2=4 TK_K2=8 \
+	TK_XCLBIN=build/final_tensor_kernel_param64.xclbin \
+	TK_INSTS=build/insts_tensor_kernel_param64.bin \
+	python3 $(PARAM_DIR)/driver.py
+
 benchmark: build/final_matmul_size16.xclbin build/final_matmul_size32.xclbin build/final_matmul_size64.xclbin build/final_matmul_baseline_size16.xclbin \
            build/final_matmul_benchmark_size16.xclbin build/final_matmul_benchmark_size32.xclbin build/final_matmul_benchmark_size64.xclbin build/final_matmul_benchmark_baseline_size16.xclbin \
-           build/final_matmul_benchmark_baseline_size32.xclbin build/final_matmul_benchmark_baseline_size64.xclbin \
+           build/final_tensor_kernel_param_benchmark_size32.xclbin build/final_tensor_kernel_param_benchmark_size64.xclbin \
            build/final_matmul_benchmark_conv_size16.xclbin build/final_matmul_benchmark_matmul_size16.xclbin \
            build/final_matmul_benchmark_conv_size32.xclbin build/final_matmul_benchmark_matmul_size32.xclbin \
            build/final_matmul_benchmark_conv_size64.xclbin build/final_matmul_benchmark_matmul_size64.xclbin

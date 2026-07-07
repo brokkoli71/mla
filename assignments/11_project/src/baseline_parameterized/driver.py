@@ -35,13 +35,16 @@ import torch
 import pyxrt
 
 # ── problem / tiling constants ────────────────────────────────────────────────
-M2, N2, K2 = 3, 1, 8       # outer tile counts
-MSUB, NSUB = 2, 2          # sub-tiles per output block
-T = 8                      # micro-tile edge
+# Override via env (must match the built .mlir instance): TK_M2 / TK_N2 / TK_K2.
+M2 = int(os.environ.get("TK_M2", 3))     # outer M tiles
+N2 = int(os.environ.get("TK_N2", 1))     # outer N tiles
+K2 = int(os.environ.get("TK_K2", 8))     # k1 (K/8)
+MSUB, NSUB = 2, 2          # sub-tiles per output block (fixed |m1|=|n1|=2)
+T = 8                      # micro-tile edge (fixed |m0|=|n0|=|k0|=8)
 
-M = M2 * MSUB * T          # 48
-N = N2 * NSUB * T          # 16
-K = K2 * T                 # 64
+M = M2 * MSUB * T          # M = m2 * 16
+N = N2 * NSUB * T          # N = n2 * 16
+K = K2 * T                 # K = k1 * 8
 
 
 def tile_a(a: torch.Tensor) -> torch.Tensor:
@@ -142,7 +145,10 @@ def run() -> None:
     out_rowmajor = untile_c(tensor_out)
     verify(A, B, out_rowmajor)
 
-    print("[PASS] tensor_kernel_m1xn1xk1 (m2=3,n2=1,k2=8) verification passed.")
+    print(
+        f"[PASS] tensor_kernel_m1xn1xk1 (m2={M2},n2={N2},k1={K2}; "
+        f"{M}x{K} @ {K}x{N}) verification passed."
+    )
 
 
 if __name__ == "__main__":

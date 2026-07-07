@@ -250,6 +250,51 @@ def benchmark_dummy_baseline(label_size: int, iters: int, warmup: int):
     return _stats_from_times(times, label_size)
 
 
+def benchmark_param_baseline(size: int, iters: int, warmup: int):
+    """
+    Time the *real* fused baseline at size32/size64 using the parameterized
+    tensor kernel (config m2=n2=2 for size32, m2=n2=4 for size64, k1=8), instead
+    of the size16-padded baseline32/baseline64 approximations.
+
+    The kernel expects tiled inputs, but timing is data-layout independent, so
+    the size-matched baseline buffers from make_buffers() (32x64/64x32/32x32 or
+    64x64/... -- identical byte counts to the kernel's tiled operands) are reused
+    directly. Output is not numerically meaningful here (accumulator isn't
+    re-zeroed across the BENCH_REPS reps), exactly as for the other benchmarks.
+    """
+    xclbin_path = f"build/final_tensor_kernel_param_benchmark_size{size}.xclbin"
+    insts_path = f"build/insts_tensor_kernel_param_benchmark_size{size}.bin"
+    insts = np.fromfile(insts_path, dtype=np.uint32)
+
+    device = pyxrt.device(0)
+    xclbin = pyxrt.xclbin(xclbin_path)
+    device.register_xclbin(xclbin)
+    uuid = xclbin.get_uuid()
+    context = pyxrt.hw_context(device, uuid)
+    kname = xclbin.get_kernels()[0].get_name()
+    kernel = pyxrt.kernel(context, kname)
+
+    bo_instr = pyxrt.bo(device, insts.nbytes, pyxrt.bo.cacheable, kernel.group_id(1))
+    bo_instr.write(insts.tobytes(), 0)
+    bo_instr.sync(pyxrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, insts.nbytes, 0)
+
+    _, _, _, bo_in0, bo_in1, bo_out = make_buffers(device, size, baseline=True)
+
+    def launch():
+        return kernel(3, bo_instr, insts.nbytes, bo_in0, bo_in1, bo_out)
+
+    for _ in range(warmup):
+        launch().wait()
+
+    times = []
+    for _ in range(iters):
+        t0 = time.perf_counter()
+        launch().wait()
+        times.append((time.perf_counter() - t0) / BENCH_REPS)
+
+    return _stats_from_times(times, size)
+
+
 def _line_with_band(ax, x_positions, center, lower, upper, label, color):
     # Percentile band (p25-p75) rather than mean +/- 1 std: these per-call
     # host latencies are right-skewed (occasional slow dispatch/scheduling
@@ -467,6 +512,16 @@ def main():
             matmul_stats = benchmark_component(size, ITERS, WARMUP, "matmul")
             results[("matmul", size)] = matmul_stats
             print_row(f"unfused size{size} matmul", matmul_stats)
+
+        # Prefer the real parameterized fused baseline (size32 -> m2=n2=2,
+        # size64 -> m2=n2=4) when its benchmark xclbin is built.
+        param_path = f"build/final_tensor_kernel_param_benchmark_size{size}.xclbin"
+        if os.path.exists(param_path):
+            base_stats = benchmark_param_baseline(size, ITERS, WARMUP)
+            results[("baseline", size)] = base_stats
+            speedup = base_stats["median_s"] / stats["median_s"]
+            print_row(f"baseline size{size} (param)", base_stats, speedup, "speedup with unfused")
+            continue
 
         regular_baseline_path, _ = xclbin_paths(size, baseline=True)
         if os.path.exists(regular_baseline_path):
