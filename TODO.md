@@ -1,12 +1,17 @@
 ## Overview
-- [ ] 02: 9/10
-- [ ] 03: 7.5/10
-- [ ] 05: 8.50/10
-- [ ] 06: 8.50/10
-- [ ] 07: 8.50/10
-- [ ] 08: 6.50/10
-- [ ] 09: 0/10
-- [ ] 10: 7/10
+- [ ] 01: 10/10
+- [ ] 02: 9/10 kleinigkeiten -> Hannes
+- [ ] 03: 7.5/10 Block swizzling -> Hannes
+- [ ] 04: 10/10
+- [ ] 05: 8.50/10 config fixen -> Hannes
+- [ ] 06: 8.50/10 -> Falko
+- [ ] 07: 8.50/10 -> Falko
+- [ ] 08: 6.50/10 -> Falko
+- [ ] 09: 0/10 -> Hannes
+- [ ] 10: 7/10 -> Hannes
+- [ ] formatierung in sphinx gegenchecken?
+- [ ] skelette aufräumen
+- [ ] Projekt schreiben -> Hannes, Falko
 
 
 
@@ -14,7 +19,7 @@
 
 #### 02
 - 02: 3b (-0.5P.): Tensor Allocations mit gebenchmarkt
-- 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen
+- 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen (nur padding mode hinschreiben? ausprobieren)
 - zu 4b: Gerne noch die ganze Range ...
 #### 03
 - Anmerkung: Bilder im Report werden nicht angezeigt
@@ -22,7 +27,7 @@
 - -2P. (Aufgabe 4): Implementierung ...
 #### 05
 - Kein Git Tag im Repo vorhanden
-- Task 3b (-0,5P.): Es müsste hier ebenfalls stride[dim_id_b] == stride[dim_id_a] * self.config.dim_sizes[dim_id_a] überprüft werden, da die Dimensionen in der Config nicht unbedingt sortiert sein müssen (Annahme, dass dim_id_a < dim_id_b reicht hier nicht aus)
+- [x] Task 3b (-0,5P.): Es müsste hier ebenfalls stride[dim_id_b] == stride[dim_id_a] * self.config.dim_sizes[dim_id_a] überprüft werden, da die Dimensionen in der Config nicht unbedingt sortiert sein müssen (Annahme, dass dim_id_a < dim_id_b reicht hier nicht aus)
 - 4b (-0,5P.): Optimierte Config fehlt im Report; 4c (-0,5P.): Korrekt gesplittet, jedoch ist die Logik hinter der Größenfindung nicht ganz korrekt (können wir gerne morgen besprechen)
 #### 06
 - -0.5P. (3a): Optimierter Kernel hat ein sehr großes k_prim. Dieses wird zwar im Kernel noch gesplittet, das wäre jedoch auch in der Config abbildbar.

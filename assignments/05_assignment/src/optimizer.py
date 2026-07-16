@@ -50,9 +50,10 @@ class Optimizer:
         for i, stride in enumerate(self.config.strides):
             if stride[dim_id_a] == 0: # if both have same type and one of them is 0, the other must also be 0
                 continue
-            if not stride[dim_id_a] == stride[dim_id_b] * self.config.dim_sizes[dim_id_b]:
+            if not (stride[dim_id_a] == stride[dim_id_b] * self.config.dim_sizes[dim_id_b] or
+                    stride[dim_id_b] == stride[dim_id_a] * self.config.dim_sizes[dim_id_a]):
                 raise ValueError(f"Dimensions {dim_id_a} and {dim_id_b} are not contiguous in dim {i} and cannot be fused.")
-
+                
         new_dim_sizes = list(self.config.dim_sizes)
         new_dim_sizes[dim_id_a] = self.config.dim_sizes[dim_id_a] * self.config.dim_sizes[dim_id_b]
         del new_dim_sizes[dim_id_b]
