@@ -25,8 +25,11 @@ As we found no faster way of converting BF16 to BFP16 on the fly without occupyi
 //TODO: On the higher level this makes sense 
 - dadurch dass wir nicht alles in register lassen können, müssen wir mehrfach laden.
 - könnte schneller sein bei großen matrizen
-The speedup can be explained by seing this as deduplicating conversion work. Previously, the matrix multiplication was implemented in blocks of multiplying two 16x16 matrices with 4 `vmac.f` instructions (see code above). This block size is capped by the maximum amount of values kept in the registers (5 dm registers, each able to store one 8x8 matrix).
-But this results in loading values multiple times for matrix multiplications with both $N$ and $M$ larger than 16 as there is no way of traversing the blocks such order that no reloading is needed.
+On the higher level this makes sense. 
+The matrix multiplication is implemented by iteratively computing $M=N=16$ blocks of the result matrix. 4 `vmac.f` instructions (see code above) compute the results for 8 steps along the $K$ dimension, which will be accumulated into 4 dm registers. This block size is capped by the maximum amount of values kept in the dm accumulator registers (theoretically there is one spare register but that is used for ...).
+For higher $K$ values we can not keep input values in the registers when they are used for a second 16x16 result block. Therefore, we need to reload them. For the on-the-fly-conversion implementation that means converting this values again. Hiding this conversion is not fully paralelisable because of the required `vmul.f` operations.
+// aber overhead durch previous conversion (nur in der größe des inputs, nicht in der größe der benötigten operationen)
+
 
 #### expected speedup
 - O notation wie auf folien
