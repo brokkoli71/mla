@@ -64,7 +64,12 @@ N\cdot M &> 24 (M+N)
 
 For the special case of $N=M$ we expect our implementation to be faster iff $N^2 > 48N$ respectively $N > 48$
 
-[TODO: add graphic]
+```{figure} figures/speedup_crossover.png
+:alt: Expected cycles vs. matrix size for on-the-fly vs. pre-converted conversion
+:width: 100%
+
+Expected cycles for both implementations over the matrix size $N$ (with $M=N$). The curves cross at $N=48$; for larger matrices pre-converting wins.
+```
 
 #### Size limitations in this work
 As there is no conceptional speedup expected with our implementation when varying the contraction dimension $K$ (see above), we keep it fixed to 64.
