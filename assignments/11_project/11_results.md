@@ -42,20 +42,25 @@ In total we will need to compute $N\cdot M$ output values, accumulated over a de
 Each `vmac.f` executes $8\cdot 8 \cdot 8 = 512$ primitive multiplications, so we land at $\frac {N\cdot M \cdot K}{512}$ `vmac.f` instructions.
 
 The total expected cycles of the on-the-fly-conversion version the number of vmacs multiplied by 1.5 (see `vmul.f` above) plus some constant overhead for the warmup (loading the first values) and cooldown (storing the last results) which can not be effectively hidden during `vmac.f`s:
+
 $$1.5\cdot \frac {N\cdot M \cdot K}{512} + \Theta(1)$$
 
 In contrast, at the core of the kernel we aim to reach the optimum of one `vmac.f` per cycle plus warmup and cooldown. 
 On the other hand we need to convert both input matrices of size $M\times K$ and $K\times N$ beforehand.
 As we will discuss later, our implementation of the conversion requires 12 cycles per storing a 8x64 matrix block. Assuming that the input matrices are multiples of this blocks, we would need $\frac{12}{8\cdot64}(MK+KN) = \frac{3}{128}(M+N)K$ cycles plus a constant warmup for loading the first values.
+
 $$\frac {N\cdot M \cdot K}{512} + \frac{3}{128}(M+N)K + \Theta(1)$$
 
 Thus, ignoring constant warmup/cooldown, we expect our implementation to be faster iff:
-$${1.5\cdot \frac {N\cdot M \cdot K}{512} > \frac {N\cdot M \cdot K}{512} + \frac{3}{128}(M+N)K}$$
-$$1.5 > 1 + {\frac{3}{128}(M+N)K\over\frac {N\cdot M \cdot K}{512}}$$
-$$1.5 > 1 + \frac{12 (M+N)}{N\cdot M}$$
-$$0.5 > \frac{12 (M+N)}{N\cdot M}$$
-$$1 > \frac{24 (M+N)}{N\cdot M}$$
-$${N\cdot M} > 24 (M+N)$$
+
+$$\begin{aligned}
+1.5\cdot \frac {N\cdot M \cdot K}{512} &> \frac {N\cdot M \cdot K}{512} + \frac{3}{128}(M+N)K \\
+1.5 &> 1 + \frac{\frac{3}{128}(M+N)K}{\frac {N\cdot M \cdot K}{512}} \\
+1.5 &> 1 + \frac{12 (M+N)}{N\cdot M} \\
+0.5 &> \frac{12 (M+N)}{N\cdot M} \\
+1 &> \frac{24 (M+N)}{N\cdot M} \\
+N\cdot M &> 24 (M+N)
+\end{aligned}$$
 
 For the special case of $N=M$ we expect our implementation to be faster iff $N^2 > 48N$ respectively $N > 48$
 
@@ -67,7 +72,9 @@ This work is constrained to matrix multiplications on one compute tile. Because 
 
 For $K=64$ the maximum size of $M,N$ is derived from the usable size of the L1 cache. 
 Due to double buffering and need for instruction cache, we can only use 31KiB of the total 64KiB. For loading the 2 input matrices we need 2 bytes per BF16 value with $64N=64M$ values per matrix, therefore the maximum $N$ is 
+
 $$N \le {31\cdot 1024 \over 2\cdot 2 \cdot 64} = 124$$
+
 Furthermore, the output matrix also needs to fit into the L1 cache.
 
 The smallest matrix size we implemented is $M=N=16$. As the $M=N=K=16$ block can be fully kept within the registers, the previous on-the-fly-conversion kernel would not execute duplicate conversions and there is no benefit of preconverting the values. Therefore, smaller kernel sizes would not make sense to implement here.
