@@ -22,16 +22,27 @@ e.g.:
 Optimally we aim to schedule one `vmac.f` per cycle resulting in the maximum throughput of matrix multiplications, as the vector unit is fully occupied calculating `vmac.f` multiplications.
 As we found no faster way of converting BF16 to BFP16 on the fly without occupying the vector unit, our approach was to convert all the values beforehand, keeping them in the L1 memory of the compute tile and afterwards using this values for multiplication.
 
-//TODO: On the higher level this makes sense 
-- dadurch dass wir nicht alles in register lassen können, müssen wir mehrfach laden.
-- könnte schneller sein bei großen matrizen
 On the higher level this makes sense. 
-The matrix multiplication is implemented by iteratively computing $M=N=16$ blocks of the result matrix. 4 `vmac.f` instructions (see code above) compute the results for 8 steps along the $K$ dimension, which will be accumulated into 4 dm registers. This block size is capped by the maximum amount of values kept in the dm accumulator registers (theoretically there is one spare register but that is used for ...).
-For higher $K$ values we can not keep input values in the registers when they are used for a second 16x16 result block. Therefore, we need to reload them. For the on-the-fly-conversion implementation that means converting this values again. Hiding this conversion is not fully paralelisable because of the required `vmul.f` operations.
-// aber overhead durch previous conversion (nur in der größe des inputs, nicht in der größe der benötigten operationen)
-
+The matrix multiplication is implemented by iteratively computing $M=N=16$ blocks of the result matrix. 
+4 `vmac.f` instructions (see code above) compute the results for 8 steps along the $K$ dimension, which will be accumulated into 4 dm registers. 
+This block size is capped by the maximum amount of values kept in the dm accumulator registers (theoretically there is one spare register but that is used for ...).
+For higher $K$ values we can not keep input values in the registers when we need them for the next 16x16 result block. 
+Therefore, we must reload them. 
+For the on-the-fly-conversion implementation that means converting this values again. 
+Hiding this conversion latency is not fully working because of the required `vmul.f` operations.
+When the values are already converted, this work would not be needed anymore.
+But on the other hand we would need to convert the values beforehand. 
+The hope is that at some size of $M$ and $N$ this overhead will be compensated for by the elimination of duplicate work and lead to a performance improve.
 
 #### expected speedup
+As mentioned earlier, the core of both versions (on-the-fly-conversion and preconverted) consists of densly packed `vmac.f` instructions that are executing the heavy lifting multiplications. 
+Thus, the number of `vmac.f` is the same for both implementations and scales with the number of primitive multiplications needed for a matrix multiplication. 
+In total we will need to compute $N\cdot M$ output values, accumulated over a depth of $K$, resulting in $N\cdot M \cdot K$ primitive multiplications.
+Each `vmac.f` executes $8\cdot 8 \cdot 8 = 512$ primitive multiplications, so we land at $\frac {N\cdot M \cdot K}{512}$ `vmac.f` instructions.
+
+The total expected cycles of the on-the-fly-conversion version is two thirds of the number of vmacs plus some constant overhead for the warmup (loading the first values) and cooldown (storing the last results):
+$$\frac 2 3\cdot \frac {N\cdot M \cdot K}{512} + O(1)$$
+
 - O notation wie auf folien
 - overhead konkret ausrechnen schnittpunkt finden
 
