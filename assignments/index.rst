@@ -37,5 +37,6 @@ Machine Learning Accelerators documentation
    08_assignment/08_results
    09_assignment/09_results
    10_assignment/10_results
+   11_project/11_results
 
 
