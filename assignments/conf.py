@@ -25,6 +25,11 @@ source_suffix = {
     '.md': 'markdown',
 }
 
+# Enable $...$ and $$...$$ math in MyST Markdown (rendered via MathJax)
+myst_enable_extensions = [
+    'dollarmath',
+]
+
 
 
 # -- Options for HTML output -------------------------------------------------
