@@ -13,7 +13,7 @@ def main():
         times.append(t)
     print(f"speedup: {times[1]/times[0]}")
 
-def run(dt):
+def setup(dt):
     inner_size = 4096
     A = torch.randn((64, inner_size), device='cuda', dtype=dt)
     B = torch.randn((inner_size, 64), device='cuda', dtype=dt)
@@ -22,6 +22,8 @@ def run(dt):
     grid = (1, )
 
     torch.cuda.init()
+def run(dt):
+    setup(dt)
     ct.launch(torch.cuda.current_stream(), grid, kernel, (A, B, C))
     torch.cuda.synchronize()
 
@@ -31,16 +33,7 @@ def run(dt):
     assert torch.allclose(C, expected, atol=1e-1), "The result is incorrect!"
 
 def benchmark(dt):
-    inner_size = 4096
-    
-    A = torch.randn((64, inner_size), device='cuda', dtype=dt)
-    B = torch.randn((inner_size, 64), device='cuda', dtype=dt)
-    C = torch.empty((64, 64), device='cuda', dtype=torch.float32)
-    
-    grid = (1, )
-
-    torch.cuda.init()
-
+    setup(dt)
     def run_kernel():
         ct.launch(torch.cuda.current_stream(), grid, kernel, (A, B, C))
         torch.cuda.synchronize()
