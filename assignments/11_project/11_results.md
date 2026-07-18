@@ -87,6 +87,16 @@ The smallest matrix size we implemented is $M=N=16$. As the $M=N=K=16$ block can
 There are 3 remaining sizes of matrix multiplication fulfilling this restrictions, which we implemented:
 $K=64, N=M\in\{16, 32, 64\}$ 
 
-#### Implementierung
+#### Implementation
 
-#### Auswertung
+#### Evaluation
+We evaluate the efficiency of our implementation in two ways: firstly on the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
+
+###### Cycles
+- zeilen zählen, warmup, cooldown. 
+- ist die anzahl gleichbleibend über verschiedene größen
+- entweder für größen separat oder nochmal in die formel am anfang einsetzen
+
+###### Benchmarks
+
+- grafik mit gemessenen werten und cycles in gestrichelt (beide y achsen über summe der daten normalisiert (mean + std))
