@@ -19,8 +19,8 @@
 
 #### 02
 - [x] 02: 3b (-0.5P.): Tensor Allocations mit gebenchmarkt
-- 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen (nur padding mode hinschreiben? ausprobieren)
-- zu 4b: Gerne noch die ganze Range ...
+- [x] 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen (nur padding mode hinschreiben? ausprobieren)
+- [x] zu 4b: Gerne noch die ganze Range ...
 #### 03
 - Anmerkung: Bilder im Report werden nicht angezeigt
 - -0,5P. (1b): Speedup fehlt (und auch Runtimes ;))

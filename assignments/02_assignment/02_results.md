@@ -71,5 +71,6 @@ Benchmarking
 **Output:**
 ```{literalinclude} ../../assignments/02_assignment/src/task4_benchmark.out
 ```
+![alt text](../../assignments/02_assignment/src/task4_benchmark_fullrange.png)
 ![alt text](../../assignments/02_assignment/src/task4_benchmark.png)
-Because the bandwidth was still increasing at `N=128`, we included a few more points up to `N=2048` to show the trend more clearly. The bandwidth increases as `N` increases, which is expected because larger matrices allow for better utilization of the GPU's memory bandwidth. However, the bandwidth reaches its peak at around `N=512` and then starts to decrease. Probably this is the point we reach hardware limits of the GPU.
+Because the bandwidth was still increasing at `N=128`, we included a few more points up to `N=8192` to show the trend more clearly. The bandwidth increases as `N` increases, which is expected because larger matrices allow for better utilization of the GPU's memory bandwidth. However, the bandwidth reaches its peak at around `N=512` and then starts to decrease. Probably this is the point we reach hardware limits of the GPU.
