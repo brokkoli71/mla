@@ -1,6 +1,6 @@
 ## Overview
 - [ ] 01: 10/10
-- [ ] 02: 9/10 kleinigkeiten -> Hannes
+- [x] 02: 9/10 kleinigkeiten -> Hannes
 - [ ] 03: 7.5/10 Block swizzling -> Hannes
 - [ ] 04: 10/10
 - [ ] 05: 8.50/10 config fixen -> Hannes
