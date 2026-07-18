@@ -22,8 +22,9 @@ def setup(dt):
     grid = (1, )
 
     torch.cuda.init()
+    return A, B, C, grid
 def run(dt):
-    setup(dt)
+    A, B, C, grid = setup(dt)
     ct.launch(torch.cuda.current_stream(), grid, kernel, (A, B, C))
     torch.cuda.synchronize()
 
@@ -33,7 +34,7 @@ def run(dt):
     assert torch.allclose(C, expected, atol=1e-1), "The result is incorrect!"
 
 def benchmark(dt):
-    setup(dt)
+    A, B, C, grid = setup(dt)
     def run_kernel():
         ct.launch(torch.cuda.current_stream(), grid, kernel, (A, B, C))
         torch.cuda.synchronize()
