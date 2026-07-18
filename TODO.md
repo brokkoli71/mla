@@ -18,7 +18,7 @@
 ## Anmerkungen
 
 #### 02
-- 02: 3b (-0.5P.): Tensor Allocations mit gebenchmarkt
+- [x] 02: 3b (-0.5P.): Tensor Allocations mit gebenchmarkt
 - 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen (nur padding mode hinschreiben? ausprobieren)
 - zu 4b: Gerne noch die ganze Range ...
 #### 03
