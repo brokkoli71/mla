@@ -68,7 +68,7 @@ For the special case of $N=M$ we expect our implementation to be faster iff $N^2
 :alt: Expected cycles vs. matrix size for on-the-fly vs. pre-converted conversion
 :width: 100%
 
-Expected cycles for both implementations over the matrix size $N$ (with $M=N$). The curves cross at $N=48$; for larger matrices pre-converting wins.
+Expected cycles for both implementations over the matrix size $N$ (with $M=N$, $K=64$). The curves cross at $N=48$ independently of $K$; for larger matrices pre-converting wins.
 ```
 
 #### Size limitations in this work
