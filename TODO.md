@@ -23,7 +23,7 @@
 - [x] zu 4b: Gerne noch die ganze Range ...
 #### 03
 - Anmerkung: Bilder im Report werden nicht angezeigt
-- -0,5P. (1b): Speedup fehlt (und auch Runtimes ;))
+- [x] -0,5P. (1b): Speedup fehlt (und auch Runtimes ;))
 - -2P. (Aufgabe 4): Implementierung ...
 #### 05
 - Kein Git Tag im Repo vorhanden

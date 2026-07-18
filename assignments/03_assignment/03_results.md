@@ -6,8 +6,9 @@ The file `assignments/03_assignment/src/__main__.py` contains the main function 
 
 **Output:**
 ```
-16bit TFLOPs:  1.1449544748761349
-32bit TFLOPs:  0.019409971572566145
+runtime torch.float16: 0.03595617373028527
+runtime torch.float32: 1.84091664514234
+speedup: 51.198902835197046
 ```
 
 ```{literalinclude} ../../assignments/03_assignment/src/task1.py

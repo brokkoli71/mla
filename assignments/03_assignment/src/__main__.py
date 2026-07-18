@@ -1,5 +1,5 @@
-from task1_falko import main as task_1
-from task2_falko import main as task_2
+from task1 import main as task_1
+from task2 import main as task_2
 from task3 import task_3a
 from task3 import task_3b
 from task4 import main as task_4
