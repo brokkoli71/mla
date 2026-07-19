@@ -43,7 +43,7 @@ b) Fix the matrix size at `2048 × 2048 × 2048`, as well as `512 × 512 × 512`
 
 
 **Output:**
-```{literalinclude} ../../assignments/03_assignment/task_3_best_tile_shapes.txt
+```{literalinclude} ../../assignments/03_assignment/src/task_3_best_tile_shapes.txt
 ```
 
 
@@ -76,7 +76,5 @@ At the last stripe the remaining heiht of the stripe (the rows) are calculated d
 ![alt text](../../assignments/03_assignment/src/task_4b_heatmap_2048.png)
 
 **Output:**
-```{literalinclude} ../../assignments/03_assignment/task_4_best_tile_shapes.txt
+```{literalinclude} ../../assignments/03_assignment/src/task_4_best_tile_shapes.txt
 ```
-
-

@@ -5,5 +5,5 @@
 - in assignment 2: 
     - ist dieser nicht endende anstieg erwartet?
     - für "4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen": müssen tile sizes auch nicht-zweierpotenzen akzeptieren? da reicht ja nur `padding_mode=ct.PaddingMode.ZERO` nicht, oder?
-- in assignment 3:
+- in assignment 3 task 1:
     - sind nicht beide kernels das gleiche? es wird doch der datentyp durch die eingegebenen daten bestimmt?

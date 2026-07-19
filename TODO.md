@@ -22,9 +22,9 @@
 - [x] 4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen (nur padding mode hinschreiben? ausprobieren)
 - [x] zu 4b: Gerne noch die ganze Range ...
 #### 03
-- Anmerkung: Bilder im Report werden nicht angezeigt
+- [x] Anmerkung: Bilder im Report werden nicht angezeigt
 - [x] -0,5P. (1b): Speedup fehlt (und auch Runtimes ;))
-- -2P. (Aufgabe 4): Implementierung ...
+- [x] -2P. (Aufgabe 4): Implementierung ...
 #### 05
 - Kein Git Tag im Repo vorhanden
 - [x] Task 3b (-0,5P.): Es müsste hier ebenfalls stride[dim_id_b] == stride[dim_id_a] * self.config.dim_sizes[dim_id_a] überprüft werden, da die Dimensionen in der Config nicht unbedingt sortiert sein müssen (Annahme, dass dim_id_a < dim_id_b reicht hier nicht aus)
