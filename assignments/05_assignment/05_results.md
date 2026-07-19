@@ -38,31 +38,31 @@ a) **Implement** the function `split_dim(dim_id: int, outer_size: int, inner_siz
 
 ```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
 :language: python
-:pyobject: split_dim
+:pyobject: Optimizer.split_dim
 ```
 b) **Implement** the function `fuse_dims(dim_id_a: int, dim_id_b: int)`.
 
 ```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
 :language: python
-:pyobject: split_dim
+:pyobject: Optimizer.fuse_dims
 ```
 
 c) **Implement** the function `permute_dims(permutation: list[int])`.
 ```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
 :language: python
-:pyobject: permute_dims
+:pyobject: Optimizer.permute_dims
 ```
 
 d) **Implement** the function `make_executable()`.
 ```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
 :language: python
-:pyobject: make_executable
+:pyobject: Optimizer.make_executable
 ```
 
 e) **Implement** the function `verify()`.
 ```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
 :language: python
-:pyobject: verify
+:pyobject: Optimizer.verify
 ```
 ---
 
