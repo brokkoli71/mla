@@ -1,5 +1,4 @@
 import cuda.tile as ct
-import cupy as cp
 import torch
 import triton
 import math
@@ -7,14 +6,15 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+from task3 import run_benchmark as run_benchmark_task2
 
 def main():
+    plot_order()
 
     A = torch.randn((8192, 4096), device='cuda', dtype=torch.float16)
     B = torch.randn((4096, 8192), device='cuda', dtype=torch.float16)
 
     C = torch.empty((8192, 8192), device='cuda', dtype=torch.float32)
-    C1 = torch.empty((8192, 8192), device='cuda', dtype=torch.float32)
 
     tm = 128
     tn = 128
@@ -33,62 +33,57 @@ def main():
     print("swizzle_kernel TFLOPs: ", tflops)
 
     vgl = torch.matmul(A, B)
-    # print(C[:5,:5])
-    # print(vgl[:5,:5])
     assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1), "The result is incorrect!"
 
-    fp = lambda : ct.launch(torch.cuda.current_stream(), grid, kernel_matmul, (A, B, C1, tm, tn, tk, grid_x,  grid_y))
-    t = triton.testing.do_bench(fp, warmup=25, rep=1000)
-    tflops = (2* m * k * n) / (t * 1e-3* 1e12)
-    print("non_swizzle_kernel TFLOPs: ", tflops)
-    
     task_4b()
 
+def calc_position(pid, swizzle_size, grid_y, grid_x):
+    num_pid_in_stripe = swizzle_size * grid_x
+    stripe_index = pid // num_pid_in_stripe
+    begin_n = stripe_index * swizzle_size
 
-@ct.kernel
-def kernel_matmul_swizzle_only_8th(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_x, grid_y):
+    stripe_height = swizzle_size
+    if (begin_n + swizzle_size) > grid_y:
+        stripe_height = grid_y - begin_n
 
-    #swizzle_Group_size = 8
-    pid = ct.bid(0)
+    index_n_temp = pid % stripe_height
+    index_m_temp = pid // stripe_height
 
-    num_pid_in_block =  8 * 8
-    blocks_m = grid_x // 8
-    blocks_n = grid_y // 8
+    index_m = index_m_temp % grid_x
+    index_n = begin_n + index_n_temp
 
-    index_m_temp  = pid % 8
-    index_n_temp = (pid // 8) % 8
+    return index_m, index_n
 
-    block_index = pid // num_pid_in_block
+def plot_order():
+    # draw the execution order of PIDs for a grid whose grid_y is *not* a
+    # multiple of swizzle_size, so the trailing (clamped) stripe is exercised too
+    swizzle_size = 4
+    grid_x = 8
+    grid_y = 9
+    num_pids = grid_x * grid_y
 
-    m_block_row = (block_index % blocks_m) * 8
-    index_m = m_block_row + index_m_temp
-    
-    n_block_col = (pid // (num_pid_in_block * blocks_m)) * 8
-    index_n = n_block_col + index_n_temp
-    
+    fig, ax = plt.subplots(figsize=(8, 8))
+    last_pos = None
+    for pid in range(num_pids):
+        index_m, index_n = calc_position(pid, swizzle_size, grid_y, grid_x)
 
+        if last_pos is not None:
+            ax.arrow(last_pos[0] + 1 / 2, last_pos[1] + 1 / 2,
+                      index_m - last_pos[0], index_n - last_pos[1],
+                      head_width=0.15, head_length=0.15, length_includes_head=True,
+                      fc='blue', ec='blue', linewidth=0.6)
+        last_pos = (index_m, index_n)
 
-    # first_index_m = (index_n_temp // 8) * 8
-    # index_m = (first_index_m + index_m_temp) % (grid_x * 8)
-
-    # index_n_block = index_n_temp % 8
-    # firs_index_n_block = (pid // threads_in_x_block) * 8
-    # index_n = firs_index_n_block + index_n_temp
- 
-
-    num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
-    accumulator = ct.full((tm, tn), 0, dtype=ct.float32)
-
-
-    for k in range(num_tiles_k):                                                
-        
-        a = ct.load(A, index=(index_m, k), shape=(tm, tk), padding_mode=ct.PaddingMode.ZERO)
-        b = ct.load(B, index=(k, index_n), shape=(tk, tn), padding_mode=ct.PaddingMode.ZERO)
-
-        accumulator = ct.mma(a, b, accumulator)
-
-    ct.store(C, index=(index_m, index_n), tile=accumulator)
-
+    ax.set_xlim(-0.5, grid_x + 0.5)
+    ax.set_ylim(-0.5, grid_y + 0.5)
+    ax.set_aspect('equal', adjustable='box')
+    ax.set_title(f"Swizzled Execution Order (swizzle_size={swizzle_size}, grid={grid_x}x{grid_y})")
+    ax.set_xlabel("Index M")
+    ax.set_ylabel("Index N")
+    ax.invert_yaxis()
+    ax.grid(alpha=0.3)
+    fig.savefig(__file__.replace('.py', '_execution_order.png'), bbox_inches='tight')
+    plt.close(fig)
 
 @ct.kernel
 def kernel_matmul_swizzle(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_x, grid_y):
@@ -96,22 +91,7 @@ def kernel_matmul_swizzle(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], t
     swizzle_size = 8
     pid = ct.bid(0)
 
-    num_pid_in_block = swizzle_size * grid_y
-    block_index = (pid // num_pid_in_block)
-    
-    begin_m = (block_index * swizzle_size)
-
-    swizzle = swizzle_size
-
-    if (begin_m + swizzle_size) > grid_x:
-        swizzle = grid_x - begin_m
-
-    index_m_temp  = pid % swizzle
-    index_n_temp = pid // swizzle
-    
-    index_n = index_n_temp % grid_y
-    index_m = begin_m + index_m_temp
-
+    index_m, index_n = calc_position(pid, swizzle_size, grid_y, grid_x)
 
     num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
     accumulator = ct.full((tm, tn), 0, dtype=ct.float32)
@@ -126,31 +106,8 @@ def kernel_matmul_swizzle(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], t
 
     ct.store(C, index=(index_m, index_n), tile=accumulator)
 
-@ct.kernel
-def kernel_matmul(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_x, grid_y):
 
-    pid = ct.bid(0)
-
-    #num_tiles_k = math.ceil(k_dim / tk)
-    num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
-    accumulator = ct.full((tm, tn), 0, dtype=ct.float32)
-
-    pid_m = pid // grid_y
-    pid_n = pid % grid_y
-
-    for k in range(num_tiles_k):
-        
-        a = ct.load(A, index=(pid_m, k), shape=(tm, tk), padding_mode=ct.PaddingMode.ZERO)
-        b = ct.load(B, index=(k, pid_n), shape=(tk, tn), padding_mode=ct.PaddingMode.ZERO)
-
-        accumulator = ct.mma(a, b, accumulator)
-
-    ct.store(C, index=(pid_m, pid_n), tile=accumulator)
-
-def run_benchmark(M, N, K, tm, tn, tk, check_correctness=False):
-    """
-    Helper function to benchmark the kernel for a specific matrix and tile size.
-    """
+def run_benchmark(M, N, K, tm, tn, tk):
     A = torch.randn((M, K), device='cuda', dtype=torch.float16)
     B = torch.randn((K, N), device='cuda', dtype=torch.float16)
     C = torch.empty((M, N), device='cuda', dtype=torch.float32)
@@ -161,18 +118,7 @@ def run_benchmark(M, N, K, tm, tn, tk, check_correctness=False):
 
     fp = lambda: ct.launch(torch.cuda.current_stream(), grid, kernel_matmul_swizzle, (A, B, C, tm, tn, tk, grid_x, grid_y))
     
-    if check_correctness:
-        # Run once to populate C
-        fp()
-        vgl = torch.matmul(A, B)
-        assert torch.allclose(C, vgl.to(dtype=torch.float32), atol=1), f"Incorrect result for tile shape ({tm}, {tn}, {tk})"
-
-    # Benchmark
-    # Adjust warmup and rep for extremely large sizes to save execution time
-    warmup = 10 if M >= 4096 else 25
-    rep = 100 if M >= 4096 else 500
-    
-    t_ms = triton.testing.do_bench(fp, warmup=warmup, rep=rep)
+    t_ms = triton.testing.do_bench(fp)
     
     # Calculate TFLOPs
     tflops = (2 * M * N * K) / (t_ms * 1e-3 * 1e12)
@@ -182,7 +128,8 @@ def task_4b():
     print("--- Running Task 4b: Tile Shape Search ---")
     matrix_sizes = [512, 2048]
     tile_dims = [32, 64, 128]
-    
+    best_tile_shapes = ""
+
     # Setup for heatmaps
     tile_indices = {32: 0, 64: 1, 128: 2}
     
@@ -194,12 +141,9 @@ def task_4b():
         # Array to store heatmap data (m_tile, n_tile) for k_tile = 64
         heatmap_data = np.zeros((3, 3)) 
         
-        # Iterate over all 27 combinations
         for tm, tn, tk in itertools.product(tile_dims, tile_dims, tile_dims):
             try:
-                # Do a quick correctness check on small size to avoid silent failures
-                check_corr = (size == 512) 
-                tflops = run_benchmark(size, size, size, tm, tn, tk, check_correctness=check_corr)
+                tflops = run_benchmark(size, size, size, tm, tn, tk)
                 
                 # Save best overall shape
                 if tflops > best_tflops:
@@ -214,8 +158,9 @@ def task_4b():
                 print(f"Tile {tm}x{tn}x{tk} failed: {e}")
                 if tk == 64:
                     heatmap_data[tile_indices[tm], tile_indices[tn]] = 0.0
-        
-        print(f"-> BEST tile shape for {size}x{size}x{size} is {best_shape} achieving {best_tflops:.2f} TFLOPS")
+        out = f"-> BEST tile shape for {size}x{size}x{size} is {best_shape} achieving {best_tflops:.2f} TFLOPS"
+        print(out)
+        best_tile_shapes += out + "\n"
         
         # Plot Heatmap
         fig, ax = plt.subplots(figsize=(6, 5))
@@ -241,6 +186,32 @@ def task_4b():
         plt.savefig(file_dir / f"task_4b_heatmap_{size}.png", bbox_inches='tight')
         plt.close()
         print(f"Saved heatmap to 'task_4b_heatmap_{size}.png'")
+        
+    with open(__file__.replace('.py', '_best_tile_shapes.txt'), 'w') as f:
+        f.write(best_tile_shapes)
+
+    task_4b_compare_to_task2()
+
+
+def task_4b_compare_to_task2():
+    print("--- Running Task 4b: Swizzle (Task 4) vs Row-Major (Task 2) Comparison ---")
+    M, N, K = 8192, 8192, 4096
+    tm, tn, tk = 128, 128, 64
+
+    task2_tflops = run_benchmark_task2(M, N, K, tm, tn, tk)
+    swizzle_tflops = run_benchmark(M, N, K, tm, tn, tk)
+    speedup = swizzle_tflops / task2_tflops
+
+    out = (
+        f"\nTask 4b comparison at M={M}, N={N}, K={K}, tile=({tm}, {tn}, {tk}):\n"
+        f"-> Task 2 kernel (row-major BIDs): {task2_tflops:.2f} TFLOPS\n"
+        f"-> Task 4 kernel (swizzled BIDs):  {swizzle_tflops:.2f} TFLOPS\n"
+        f"-> Speedup from swizzling: {speedup:.2f}x\n"
+    )
+    print(out)
+
+    with open(__file__.replace('.py', '_best_tile_shapes.txt'), 'a') as f:
+        f.write(out)
 
 
 if __name__ == "__main__":

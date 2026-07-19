@@ -19,11 +19,6 @@ speedup: 51.198902835197046
 
 ## Task 2: Simple Matrix Multiplication Kernel
 
-**Output:**
-```
-16bit TFLOPs:  1.1449544748761349
-32bit TFLOPs:  0.019409971572566145
-```
 
 ```{literalinclude} ../../assignments/03_assignment/src/task2.py
 :language: python
@@ -48,9 +43,7 @@ b) Fix the matrix size at `2048 × 2048 × 2048`, as well as `512 × 512 × 512`
 
 
 **Output:**
-```
-BEST tile shape for 512x512x512 is (128, 64, 128) achieving 12.07 TFLOPS
-BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.57 TFLOPS
+```{literalinclude} ../../assignments/03_assignment/task_3_best_tile_shapes.txt
 ```
 
 
@@ -65,22 +58,25 @@ BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.57 TFLOPS
 :pyobject: kernel_matmul_swizzle
 ```
 
-**Output:**
-```
-swizzle_kernel TFLOPs:  68.14132984785671
-non_swizzle_kernel TFLOPs:  27.46563761972282
+```{literalinclude} ../../assignments/03_assignment/src/task4.py
+:language: python
+:pyobject: calc_position
 ```
 
 PIDs are mapped into horizontal 'stripes' across the output matrix. Each stripe consists of 8 rows. Within a stripe, the PIDs traverse the tiles column by column: the first 8 PIDs compute a vertical column of 8 tiles downwards.
 When the stripe is finished. The next stripe is computed, starting at row index 8.
 At the last stripe the remaining heiht of the stripe (the rows) are calculated dynamically, to prevent out-of-bounds memory accesses.
 
+![alt text](../../assignments/assignments/03_assignment/src/task4_execution_order.png)
 
+#### Benchmarks
 ![alt text](../../assignments/03_assignment/src/task_4b_heatmap_512.png)
 
--> BEST tile shape for 512x512x512 is (128, 64, 32) achieving 10.77 TFLOPS
 
 ![alt text](../../assignments/03_assignment/src/task_4b_heatmap_2048.png)
 
--> BEST tile shape for 2048x2048x2048 is (128, 128, 64) achieving 54.77 TFLOPS
+**Output:**
+```{literalinclude} ../../assignments/03_assignment/task_4_best_tile_shapes.txt
+```
+
 

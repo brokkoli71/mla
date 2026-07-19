@@ -7,23 +7,7 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-
-@ct.kernel
-def kernel_matmul(A, B, C, tm: ct.Constant[int], tn: ct.Constant[int], tk: ct.Constant[int], grid_y, k_dim):
-    pid = ct.bid(0)
-    
-    num_tiles_k = ct.num_tiles(A, axis=1, shape=(tm, tk))
-    accumulator = ct.full((tm, tn), 0, dtype=ct.float32)
-
-    pid_m = pid // grid_y
-    pid_n = pid % grid_y
-
-    for k in range(num_tiles_k):
-        a = ct.load(A, index=(pid_m, k), shape=(tm, tk), padding_mode=ct.PaddingMode.ZERO)
-        b = ct.load(B, index=(k, pid_n), shape=(tk, tn), padding_mode=ct.PaddingMode.ZERO)
-        accumulator = ct.mma(a, b, accumulator)
-
-    ct.store(C, index=(pid_m, pid_n), tile=accumulator)
+from task2 import kernel_fp16
 
 def run_benchmark(M, N, K, tm, tn, tk, check_correctness=False):
     """
@@ -35,10 +19,15 @@ def run_benchmark(M, N, K, tm, tn, tk, check_correctness=False):
 
     grid_x = math.ceil(M / tm)
     grid_y = math.ceil(N / tn)
+
+    M_padded = int(2**math.ceil(math.log2(max(M, tm)))) 
+    N_padded = int(2**math.ceil(math.log2(max(N, tn))))
+    K_padded = int(2**math.ceil(math.log2(max(K, tk))))
+
     grid = (grid_x * grid_y, 1, 1)
 
-    fp = lambda: ct.launch(torch.cuda.current_stream(), grid, kernel_matmul, (A, B, C, tm, tn, tk, grid_y, K))
-    
+    fp = lambda: ct.launch(torch.cuda.current_stream(), grid, kernel_fp16, (A, B, C, tm, tn, tk, M_padded, N_padded, K_padded))
+
     if check_correctness:
         # Run once to populate C
         fp()
@@ -90,7 +79,8 @@ def task_3b():
     print("--- Running Task 3b: Tile Shape Search ---")
     matrix_sizes = [512, 2048]
     tile_dims = [32, 64, 128]
-    
+    best_tile_shapes = ""
+
     # Setup for heatmaps
     tile_indices = {32: 0, 64: 1, 128: 2}
     
@@ -123,7 +113,9 @@ def task_3b():
                 if tk == 64:
                     heatmap_data[tile_indices[tm], tile_indices[tn]] = 0.0
         
-        print(f"-> BEST tile shape for {size}x{size}x{size} is {best_shape} achieving {best_tflops:.2f} TFLOPS")
+        out = f"-> BEST tile shape for {size}x{size}x{size} is {best_shape} achieving {best_tflops:.2f} TFLOPS"
+        print(out)
+        best_tile_shapes += out + "\n"
         
         # Plot Heatmap
         fig, ax = plt.subplots(figsize=(6, 5))
@@ -150,6 +142,9 @@ def task_3b():
         plt.close()
         print(f"Saved heatmap to 'task_3b_heatmap_{size}.png'")
 
+    with open(__file__.replace('.py', '_best_tile_shapes.txt'), 'w') as f:
+        f.write(best_tile_shapes)
+    
 if __name__ == "__main__":
     task_3a()
     task_3b()

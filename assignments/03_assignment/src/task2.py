@@ -31,8 +31,6 @@ def main():
     expected = torch.empty((M, N), device='cuda', dtype=torch.float16)
     torch.matmul(A, B, out=expected)
     expected = expected.to(torch.float32)  # Convert to float32 for comparison
-    # print("Expected:\n", expected)
-    # print("Actual:\n", C)
     assert torch.allclose(C, expected, atol=1e-1), "The result is incorrect!"
 
 
