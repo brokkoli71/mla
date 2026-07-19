@@ -67,7 +67,7 @@ PIDs are mapped into horizontal 'stripes' across the output matrix. Each stripe 
 When the stripe is finished. The next stripe is computed, starting at row index 8.
 At the last stripe the remaining heiht of the stripe (the rows) are calculated dynamically, to prevent out-of-bounds memory accesses.
 
-![alt text](../../assignments/assignments/03_assignment/src/task4_execution_order.png)
+![alt text](../../assignments/03_assignment/src/task4_execution_order.png)
 
 #### Benchmarks
 ![alt text](../../assignments/03_assignment/src/task_4b_heatmap_512.png)
