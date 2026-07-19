@@ -1,8 +1,8 @@
 ## Overview
 - [ ] 01: 10/10
 - [x] 02: 9/10 kleinigkeiten -> Hannes
-- [ ] 03: 7.5/10 Block swizzling -> Hannes
-- [ ] 04: 10/10
+- [x] 03: 7.5/10 Block swizzling -> Hannes
+- [x] 04: 10/10
 - [ ] 05: 8.50/10 config fixen -> Hannes
 - [ ] 06: 8.50/10 -> Falko
 - [ ] 07: 8.50/10 -> Falko

@@ -4,15 +4,6 @@ In this assignment you will build a high-level configuration interface for tenso
 
 All code should be written in `src/`.
 
-We assume the following import conventions:
-
-```python
-import cuda.tile as ct
-import cupy as cp
-import torch
-import triton
-from dataclasses import dataclass, field
-```
 
 **Use FP16 data type for tensor inputs and outputs, accumulate in FP32.**
 We assume row-major order for all tensors.
@@ -21,30 +12,11 @@ We assume row-major order for all tensors.
 
 ## Task 1: Config Class
 
-Define the following Python types that together represent a tensor contraction configuration as introduced in the lecture.
 
-a) Define enumeration types (e.g. using Python's `enum.Enum` or simple class constants) for:
-
-- **`DimType`**: `M`, `N`, `K`, `C`
-- **`ExecType`**: `SEQ`, `PAR`, `PRIM`
-- **`PrimType`**: `GEMM`, `BGEMM`
-- **`LastType`**: `NONE`, `ELWISE_MUL`
-- **`FirstType`**: `ZERO`
-- **`DataType`**: `FLOAT16`, `FLOAT32`
-
-b) Define a `Config` dataclass with the following fields, matching the interface
-shown in the lecture:
-
-| Field | Type | Description |
-|---|---|---|
-| `data_type` | `DataType` | Numeric precision of the operands |
-| `prim_main` | `PrimType` | Main (B)GEMM primitive used inside the kernel |
-| `prim_last` | `LastType` | Optional elementwise operation applied after the accumulation |
-| `prim_first` | `FirstType` | Initialization of the accumulator |
-| `dim_types` | `list[DimType]` | Per-dimension index type |
-| `exec_types` | `list[ExecType]` | Per-dimension execution strategy |
-| `dim_sizes` | `list[int]` | Per-dimension size |
-| `strides` | `list[list[int]]` | Per-tensor, per-dimension stride (one inner list per tensor) |
+```{literalinclude} ../../assignments/05_assignment/src/config.py
+:language: python
+:pyobject: Config
+```
 
 ---
 
@@ -52,13 +24,10 @@ shown in the lecture:
 
 Write a function `generate_config` that takes an einsum string and a list of shapes for the input tensors (the output shape is implied by the einsum) and returns a basic `Config`.
 
-**Requirements:**
-
-- Classify each dimension index automatically by inspecting in which tensors it appears.
-- Compute strides for every tensor assuming **row-major layout**. A stride of `0` indicates that the dimension does not appear in that tensor.
-- Set **all** `exec_types` to `SEQ`.
-- Set `data_type = DataType.FLOAT16`, `prim_main = PrimType.GEMM`, `prim_last = LastType.NONE`, `prim_first = FirstType.ZERO`.
-
+```{literalinclude} ../../assignments/05_assignment/src/config.py
+:language: python
+:pyobject: generate_config
+```
 ---
 
 ## Task 3: Optimizer Class
@@ -67,44 +36,34 @@ Implement a class `Optimizer` that wraps a `Config` and exposes methods to trans
 
 a) **Implement** the function `split_dim(dim_id: int, outer_size: int, inner_size: int)`.
 
-It splits one dimension into two. `outer_size * inner_size` must equal the original size; raise a `ValueError` otherwise.
-
-After splitting:
-- Insert two new dimensions at the position of the original dimension.
-- The outer dimension (left) gets `size = outer_size`.
-- The inner dimension (right) gets `size = inner_size`.
-- Strides have to be updated accordingly.
-- Both new dimensions inherit `dim_type` and `exec_type` from the original.
-
+```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
+:language: python
+:pyobject: split_dim
+```
 b) **Implement** the function `fuse_dims(dim_id_a: int, dim_id_b: int)`.
 
-Fuse two dimensions into a single one. Two dimensions can only be fused if they are **adjacent** in every tensor they both appear in, i.e., the two dimensions are contiguous in memory (`stride[a] == stride[b] * size[b]` or `stride[a] * size[a] == stride[b]`) in every tensor.
-
-Check this condition for all tensors before performing the fusion. Raise a descriptive `ValueError` if the check fails.
-
-After a valid fusion:
-- The new size is `size[a] * size[b]`.
-- Update the strides lists accordingly.
-- The fused dimension inherits the `dim_type` and `exec_type` of `dim_id_a`.
-- Remove one dimension from all lists.
+```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
+:language: python
+:pyobject: split_dim
+```
 
 c) **Implement** the function `permute_dims(permutation: list[int])`.
-
-Reorder all per-dimension lists (`dim_types`, `exec_types`, `dim_sizes`, and each tensor's strides list) according to `permutation`, following the syntax of `torch.permute`.
+```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
+:language: python
+:pyobject: permute_dims
+```
 
 d) **Implement** the function `make_executable()`.
-
-Set exec types and permute the config's dimensions so that the config becomes executable via cuTile. Use the parallel execution type where possible. Test the resulting configuration with your `verify()` function from e).
+```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
+:language: python
+:pyobject: make_executable
+```
 
 e) **Implement** the function `verify()`.
-
-Check that the current configuration is executable. Raise a descriptive `ValueError` for each violated condition:
-
-1. No `K`-dimension may have `exec_type = PAR`.
-2. All dimensions with `exec_type = SEQ` must appear to the **left** of all dimensions with `exec_type = PRIM` in the config.
-3. All dimensions with `exec_type = PAR` must appear to the **left** of all dimensions with `exec_type = SEQ` in the config.
-4. The rightmost dimensions must be `PRIM` and the `PRIM` dimensions must include at least one dimension of each type `M`, `N`, and `K`.
-
+```{literalinclude} ../../assignments/05_assignment/src/optimizer.py
+:language: python
+:pyobject: verify
+```
 ---
 
 ## Task 4: L2-Optimized Batched Contraction
