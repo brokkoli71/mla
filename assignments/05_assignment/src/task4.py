@@ -65,6 +65,9 @@ def task_a_and_b():
     optimizer.permute_dims([0, 1, 6, 2, 7, 4, 3, 8, 5]) # -> c,m,n,m_l2,n_l2,k,m_prim,n_prim,k_prim
     # optimizer.make_executable()
     print(optimizer.config)
+    with open(file_dir / "task4b.out", "w") as f:
+        f.write(str(optimizer.config))
+
     
 def task_c_and_d():
     c = 4

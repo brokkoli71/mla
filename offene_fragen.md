@@ -7,3 +7,4 @@
     - für "4a (-0.5P.): Kernel unterstützt nur Zweierpotenzen": müssen tile sizes auch nicht-zweierpotenzen akzeptieren? da reicht ja nur `padding_mode=ct.PaddingMode.ZERO` nicht, oder?
 - in assignment 3 task 1:
     - sind nicht beide kernels das gleiche? es wird doch der datentyp durch die eingegebenen daten bestimmt?
+- 5.4c: ihr habt gefeedbackt, unsere Logik hinter der Größenfindung ist nicht ganz korrekt. wie war das nochmal?

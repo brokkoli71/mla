@@ -87,6 +87,10 @@ config.dim_sizes = [ [...], |m_l2|, |n_l2|, |m_prim|, |n_prim|, |k_prim|]
 **Choose** the sizes for `m_l2`, `m_prim`, `n_l2`, `n_prim` and **justify** your choice with respect to L2 cache reuse.
 **Report** the final config.
 
+Output:
+```{literalinclude} src/task4b.out
+```
+
 ### prim sizes
 First we want to choose the optimal `m_prim, n_prim, k_prim` sizes of one mma instruction. 
 
