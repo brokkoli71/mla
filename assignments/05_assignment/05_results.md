@@ -1,4 +1,4 @@
-# Assignment 05: Contraction Interface and L2 Optimization
+# Submission 05: Contraction Interface and L2 Optimization
 
 In this assignment you will build a high-level configuration interface for tensor contractions, implement an optimizer that manipulates those configurations, and use it to derive and benchmark an L2-optimized cuTile kernel.
 

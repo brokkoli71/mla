@@ -1,4 +1,4 @@
-# Assignment 07: Inferring the VLIW ISA of XDNA2
+# Submission 07: Inferring the VLIW ISA of XDNA2
 
 In this assignment, you will infer key properties of the VLIW instruction set architecture (ISA) of the XDNA2 (AIE2P) compute tile.
 You will write two simple AIE-API kernels, compile them with the Peano compiler, and systematically extract ISA properties from the generated assembly.

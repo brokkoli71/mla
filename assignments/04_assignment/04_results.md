@@ -1,4 +1,4 @@
-# Assignment 04: Tensor Contractions on GPUs
+# Submission 04: Tensor Contractions on GPUs
 
 ## Task 1: Tiled Contraction Kernel Variants
 

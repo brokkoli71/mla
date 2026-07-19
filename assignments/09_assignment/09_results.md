@@ -1,4 +1,4 @@
-# Assignment 09: XDNA GEMM
+# Submission 09: XDNA GEMM
 
 This week you will perform a larger matrix multiplication on the NPU.
 For this you will write data-movement code in the MLIR-AIE dialect and add loops around your XDNA tensor kernel.

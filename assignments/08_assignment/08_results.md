@@ -1,4 +1,4 @@
-# Assignment 08: XDNA GEMM Kernel
+# Submission 08: XDNA GEMM Kernel
 
 This week you will write an XDNA kernel to perform a matrix multiplication on the NPU.
 The XDNA kernel is a tensor kernel as it operates on tensor layouts.

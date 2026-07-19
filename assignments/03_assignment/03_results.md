@@ -1,4 +1,4 @@
-# Assignment 03: Matrix Multiplication with cuTile
+# Submission 03: Matrix Multiplication with cuTile
 
 The file `assignments/03_assignment/src/__main__.py` contains the main function that runs all the tasks for this assignment. Each task is implemented in a separate file in the same directory. The results of each task are printed to the console when the main function is executed.
 

@@ -1,4 +1,4 @@
-# Assignment 06: Multi-Input Einsum Contraction
+# Submission 06: Multi-Input Einsum Contraction
 
 In this assignment you will contract two intermediate tensors of a light-field tensor-ring decomposition loaded from disk, first by using PyTorch's `torch.einsum` as a reference, and then by building a cuTile kernel driven by the `Config`/`Optimizer` interface you implemented in Assignment 05.
 
