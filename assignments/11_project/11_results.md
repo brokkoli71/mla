@@ -73,6 +73,7 @@ Expected cycles for both implementations over the matrix size $N$ (with $M=N$, $
 
 #### Size limitations in this work
 As there is no conceptional speedup expected with our implementation when varying the contraction dimension $K$ (see above), we keep it fixed to 64.
+
 This work is constrained to matrix multiplications on one compute tile. Because we want to keep the whole converted matrices in the L1 memory, we are limited on the size of the input matrices. Also, we will only implement multiplications with side length $M=N$ being a power of two.
 
 For $K=64$ the maximum size of $M,N$ is derived from the usable size of the L1 cache. 
@@ -82,7 +83,7 @@ $$N \le {31\cdot 1024 \over 2\cdot 2 \cdot 64} = 124$$
 
 Furthermore, the output matrix also needs to fit into the L1 cache.
 
-The smallest matrix size we implemented is $M=N=16$. As the $M=N=K=16$ block can be fully kept within the registers, the previous on-the-fly-conversion kernel would not execute duplicate conversions and there is no benefit of preconverting the values. Therefore, smaller kernel sizes would not make sense to implement here.
+The smallest matrix size we implemented is $M=N=16$. When iterating over $K$ we can keep accumulation results of the full matrix in 4 of the 5 `dm` accumulator registers. Therefore, there is no need to reload the data later, and thus the previous on-the-fly-conversion kernel would not execute duplicate conversions and there is no benefit of preconverting the values. Therefore, smaller kernel sizes would not make sense to implement here.
 
 There are 3 remaining sizes of matrix multiplication fulfilling this restrictions, which we implemented:
 $K=64, N=M\in\{16, 32, 64\}$ 
