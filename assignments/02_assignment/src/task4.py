@@ -40,10 +40,12 @@ def matrix_copy(A, B, tile_M: ct.Constant[int], tile_N: ct.Constant[int]):
     
     ct.store(B, index=index, tile=A_block)
 
-def main():
-    grid, A, B, tile_M, tile_N = setup()
+def main(**kwargs):
+    grid, A, B, tile_M, tile_N = setup(**kwargs)
     run(grid, A, B, tile_M, tile_N)
     assert torch.allclose(B, A), "Task 4 failed: B does not match A!"
 
 if __name__ == "__main__":
     main()
+    # test with non-power-of-two sizes
+    main(M=2046, N=12)

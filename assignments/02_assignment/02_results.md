@@ -70,4 +70,4 @@ Benchmarking
 
 ![alt text](../../assignments/02_assignment/src/task4_benchmark_fullrange.png)
 ![alt text](../../assignments/02_assignment/src/task4_benchmark.png)
-Because the bandwidth was still increasing at `N=128`, we included a few more points up to `N=8192` to show the trend more clearly. The bandwidth increases as `N` increases, which is expected because larger matrices allow for better utilization of the GPU's memory bandwidth.
+Because the bandwidth was still increasing at `N=128`, we included a few more points up to `N=2^17=131072` to show the trend more clearly. The bandwidth increases as `N` increases, which is expected because larger matrices allow for better utilization of the GPU's memory bandwidth. At around 2^14 the bandwidth reaches a maximum at ~215 GB/s, probably a hardware limit.

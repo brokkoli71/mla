@@ -4,7 +4,7 @@ from pathlib import Path
 import torch
 
 from task4 import run, setup
-def main(N=[16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192], name="", log_scaling=True):
+def main(N=[2**i for i in range (4, 18)], name="", log_scaling=True):
     M = 2048
     dtype = torch.float32
     bandwidths = []

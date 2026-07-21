@@ -12,6 +12,7 @@
 - [ ] formatierung in sphinx gegenchecken?
 - [ ] skelette aufräumen
 - [ ] Projekt schreiben -> Hannes, Falko
+- [ ] git tag für finale abgabe
 
 
 
