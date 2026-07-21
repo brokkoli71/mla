@@ -5,6 +5,6 @@ Config(
     prim_first=FirstType.ZERO,
     dim_types=[<DimType.C: 3>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>],
     exec_types=[<ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>, <ExecType.SEQ: 0>],
-    dim_sizes=[4, 16, 16, 4, 4, 32, 64, 64, 128],
-    strides=[[16777216, 1048576, 0, 262144, 0, 128, 4096, 0, 1], [16777216, 0, 256, 0, 64, 524288, 0, 1, 4096], [16777216, 1048576, 256, 262144, 64, 0, 4096, 1, 0]]
+    dim_sizes=[4, 4, 4, 16, 16, 32, 64, 64, 128],
+    strides=[[16777216, 4194304, 0, 262144, 0, 128, 4096, 0, 1], [16777216, 0, 1024, 0, 64, 524288, 0, 1, 4096], [16777216, 4194304, 1024, 262144, 64, 0, 4096, 1, 0]]
 )

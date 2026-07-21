@@ -138,7 +138,17 @@ d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cu
 
 ```{literalinclude} src/task4.py
 :language: python
+:pyobject: swizzle_position
+```
+
+```{literalinclude} src/task4.py
+:language: python
 :pyobject: multiply
+```
+
+```{literalinclude} src/task4.py
+:language: python
+:pyobject: multiply_3d
 ```
 
 ![alt text](../../assignments/05_assignment/src/task4_results.png)
@@ -146,5 +156,8 @@ d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cu
 ```{literalinclude} src/task4_results.txt
 ```
 
+`multiply` was our first implementation. It reshapes `A`, `B`, `C` into 6D tensors mirroring the tiling hierarchy (`c, m_outer, m_l2, k_outer, m_prim, k_prim`, ...), so each output tile is reached by indexing directly into its `(m_outer, m_l2)` / `(n_outer, n_l2)` position, matching the config from b) closely. It ended up slower than the row-major baseline.
 
-The optimized kernel is slower than the baseline kernel, which is unexpected. One possible reason for this could be that the chosen tile sizes for L2 optimization are not optimal (maybe a wrong assumption in b). Another reason could be that the overhead of managing the more complex tiling and scheduling in the optimized kernel outweighs the benefits of improved cache reuse. Further analysis and tuning of the tile sizes and scheduling strategy may be necessary to achieve better performance with the optimized kernel.
+To find out why, we added `multiply_3d`. It uses the same `swizzle_position` block-id decomposition, so both kernels compute the same `(m, n)` tile for a given block in the same order. The only difference is that `multiply_3d` indexes directly into the `(c, m, k)` / `(c, k, n)` / `(c, m, n)` tensors instead of the reshaped 6D ones. That separates two possible explanations: a bad swizzle pattern, or overhead from the 6D tensor layout.
+
+`multiply`'s 6D loads carry four extra size-1 index dimensions per `ct.load`, which `multiply_3d` avoids. Once that overhead is gone, `multiply_3d` beats the baseline.
