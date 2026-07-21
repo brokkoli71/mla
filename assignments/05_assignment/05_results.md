@@ -94,13 +94,12 @@ Output:
 ### prim sizes
 First we want to choose the optimal `m_prim, n_prim, k_prim` sizes of one mma instruction. 
 
-We want to fit as many primitive operations of a matrix multiplication into one operation of mma as possible which is `m_prim * n_prim * k_prim`. In one mma operation the maximal memory is th max shared memory per block, which is 48 KiB for our machine. Using FP32 (4 bytes) for accumulation and FP16 (2 bytes) for inputs, the required memory for one mma is `mma_size = (2 * m_prim * k_prim + 2 * k_prim * n_prim + 4 * m_prim * n_prim)` bytes. 
-
+We want to fit as many primitive operations of a matrix multiplication into one operation of mma as possible which is `m_prim * n_prim * k_prim`. 
+In one mma operation the maximal memory is th max shared memory per block, which is 48 KiB for our machine. Using FP32 (4 bytes) for accumulation and FP16 (2 bytes) for inputs, the required memory for one mma is `mma_size = (2 * m_prim * k_prim + 2 * k_prim * n_prim + 4 * m_prim * n_prim)` bytes. 
 Therefore want to maximize `m_prim * n_prim * k_prim` s.t. `mma_size = max_shared_memory_per_block`. 
-
 Assuming `m_prim = n_prim` due to symmetry, leaves the optimization problem:
 
-max `m_prim^2 * k_prim` s.t. `4 * m_prim * k_prim + 4 * m_prim^2 = max_shared_memory_per_block`
+$$\max m_{prim}^2 \cdot k_{prim} \text{ s.t. } 4 \cdot m_{prim} \cdot k_{prim} + 4 \cdot m_{prim}^2 = \text{max shared memory per block}$$
 
 This is solved for `m_prim = sqrt(max_shared_memory_per_block/12)`
 
@@ -112,15 +111,17 @@ Next we want to choose `m_l2` and `n_l2` such that a swizzle block fits into the
 The size of the L2 cache on our machine is 24MiB. 
 Every kernel loads `k_outer * m_prim * k_prim` values from matrix A and `k_outer * n_prim * k_prim` from B, respectively.
 The amount of loaded values from A within a swizzle block is linear in `m_l2` and for B linear in `n_l2`.
-Therefore, in total we need to fit `m_l2 * k_outer * m_prim * k_prim + n_l2 * k_outer * n_prim * k_prim` into the L2 cache.
-For optimal L2 use, we want to fill ~90-95% of the 24 MiB (${24 \cdot 1024 \cdot 1024 \text{ bytes} \over 2 \text{ bytes per BF16 value}} = 12582912$ values)
+Therefore, in total we need to fit `m_l2 * k_outer * m_prim * k_prim + n_l2 * k_outer * n_prim * k_prim` values into the L2 cache.
+For optimal L2 use, we want to fill ~90-95% of the 24 MiB cache
+
+$$24\text{ MiB} = {24 \cdot 1024 \cdot 1024 \text{ bytes} \over 2 \text{ bytes per BF16 value}} = 12582912 \text{ values}$$
 
 Inserting the previously calculated values, we land on:
 $$m_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 + n_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 \le 12582912$$
 $$262144(m_{L2} + n_{L2}) \le 12582912$$
 $$m_{L2} + n_{L2} \le 48$$
 
-We want to maximize the values calculated per swizzle block, thus maximizing $m_{L2} \cdot n_{L2}$. Good values, therefore would be $m_{L2} = n_{L2} = 16$. while only using 67% of the L2 cache, we stick to sizes being a power of 2
+We want to maximize the values calculated per swizzle block, thus maximizing $m_{L2} \cdot n_{L2}$. Therefore, good values would be $m_{L2} = n_{L2} = 16$. While only using 67% of the L2 cache, we stick to sizes being a power of 2.
 
 c) Implement the kernel
 
