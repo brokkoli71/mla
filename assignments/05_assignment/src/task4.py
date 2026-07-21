@@ -77,7 +77,7 @@ def task_c_and_d():
     m_prim = n_prim = 64
     k_prim = 128
     m_l2 = 16
-    n_l2 = 32
+    n_l2 = 16
 
     k_outer = k // k_prim
     m_outer = m // (m_l2 * m_prim)

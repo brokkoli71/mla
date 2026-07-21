@@ -107,7 +107,20 @@ This is solved for `m_prim = sqrt(max_shared_memory_per_block/12)`
 In the case of 48 KiB of shared memory, `m_prim = n_prim = 64` and `k_prim = max_shared_memory_per_block / (4 * m_prim) - m_prim = 128` is optimal.
 
 ### L2 sizes
-Next we want to choose `m_l2` and `n_l2` such that they fit into the L2 cache. The size of the L2 cache on our machine is 24MiB. Each kernel block loads `k//k_prim=32` tiles of A and B of size `k_prim * m_prim` and `k_prim * n_prim` respectively with `128*64*2 = 16384` bytes. So in total we can load `24 MiB / 16384 bytes = 1536` tiles of A and B into the L2 cache, resulting in `1536 / 32 = 48` kernel blocks fitting into the L2 cache. So we can choose `m_l2 = n_l2 = 24` to have 48 blocks working on different `m_l2, n_l2` tiles while reusing the same `k_outer` tiles in L2. Another option is `m_l2 = 32` and `n_l2 = 16`, also resulting in 48 blocks in L2. This might be better since both are a power of two.
+
+Next we want to choose `m_l2` and `n_l2` such that a swizzle block fits into the L2 cache. 
+The size of the L2 cache on our machine is 24MiB. 
+Every kernel loads `k_outer * m_prim * k_prim` values from matrix A and `k_outer * n_prim * k_prim` from B, respectively.
+The amount of loaded values from A within a swizzle block is linear in `m_l2` and for B linear in `n_l2`.
+Therefore, in total we need to fit `m_l2 * k_outer * m_prim * k_prim + n_l2 * k_outer * n_prim * k_prim` into the L2 cache.
+For optimal L2 use, we want to fill ~90-95% of the 24 MiB (${24 \cdot 1024 \cdot 1024 \text{ bytes} \over 2 \text{ bytes per BF16 value}} = 12582912$ values)
+
+Inserting the previously calculated values, we land on:
+$$m_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 + n_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 \le 12582912$$
+$$262144(m_{L2} + n_{L2}) \le 12582912$$
+$$m_{L2} + n_{L2} \le 48$$
+
+We want to maximize the values calculated per swizzle block, thus maximizing $m_{L2} \cdot n_{L2}$. Good values, therefore would be $m_{L2} = n_{L2} = 16$. while only using 67% of the L2 cache, we stick to sizes being a power of 2
 
 c) Implement the kernel
 
