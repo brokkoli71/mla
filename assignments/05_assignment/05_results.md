@@ -117,6 +117,7 @@ For optimal L2 use, we want to fill ~90-95% of the 24 MiB cache
 $$24\text{ MiB} = {24 \cdot 1024 \cdot 1024 \text{ bytes} \over 2 \text{ bytes per BF16 value}} = 12582912 \text{ values}$$
 
 Inserting the previously calculated values, we land on:
+
 $$m_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 + n_{L2} \cdot \frac {4096} {128} \cdot 64 \cdot 128 \le 12582912$$
 $$262144(m_{L2} + n_{L2}) \le 12582912$$
 $$m_{L2} + n_{L2} \le 48$$
