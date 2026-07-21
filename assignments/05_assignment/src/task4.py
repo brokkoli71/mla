@@ -9,6 +9,7 @@ import cupy as cp
 from optimizer import Optimizer
 import cuda.tile as ct
 
+file_dir = Path(__file__).parent
 
 def power_of_two_contained_in(n):
     """Returns the largest power of two that is less than or equal to n."""
@@ -111,6 +112,12 @@ def task_c_and_d():
     tflops_baseline = 2 * (n * m * k * c) / (ms_baseline / 1000) / (10**12)
     print(f"Execution time of baseline kernel: {ms_baseline:.2f} ms")
     print(f"TFLOPS of baseline kernel: {tflops_baseline:.2f}")
+    
+    with open(file_dir / 'task4_results.txt', 'w') as f:
+        f.write(f"Execution time of optimized kernel: {ms:.2f} ms\n")
+        f.write(f"TFLOPS of optimized kernel: {tflops:.2f}\n")
+        f.write(f"Execution time of baseline kernel: {ms_baseline:.2f} ms\n")
+        f.write(f"TFLOPS of baseline kernel: {tflops_baseline:.2f}\n")
     plot_results(tflops, tflops_baseline)
 
 def plot_results(tflops_optimized, tflops_baseline):
@@ -120,7 +127,6 @@ def plot_results(tflops_optimized, tflops_baseline):
     plt.bar(labels, tflops, color=['blue', 'orange'])
     plt.ylabel('TFLOPS')
     plt.title('TFLOPS of Optimized vs Baseline Kernel')
-    file_dir = Path(__file__).parent
     plt.savefig(file_dir / 'task4_results.png')
 
 @ct.kernel

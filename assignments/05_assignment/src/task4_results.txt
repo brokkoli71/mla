@@ -1,0 +1,4 @@
+Execution time of optimized kernel: 109.20 ms
+TFLOPS of optimized kernel: 5.03
+Execution time of baseline kernel: 38.39 ms
+TFLOPS of baseline kernel: 14.32

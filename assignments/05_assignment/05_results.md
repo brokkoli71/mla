@@ -142,4 +142,8 @@ d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cu
 
 ![alt text](../../assignments/05_assignment/src/task4_results.png)
 
-The optimized kernel achieves 5.66 TFLOPS, while the baseline kernel achieves 15.14 TFLOPS. The optimized kernel is slower than the baseline kernel, which is unexpected. One possible reason for this could be that the chosen tile sizes for L2 optimization are not optimal (maybe a wrong assumption in b). Another reason could be that the overhead of managing the more complex tiling and scheduling in the optimized kernel outweighs the benefits of improved cache reuse. Further analysis and tuning of the tile sizes and scheduling strategy may be necessary to achieve better performance with the optimized kernel.
+```{literalinclude} src/task4_results.txt
+```
+
+
+The optimized kernel is slower than the baseline kernel, which is unexpected. One possible reason for this could be that the chosen tile sizes for L2 optimization are not optimal (maybe a wrong assumption in b). Another reason could be that the overhead of managing the more complex tiling and scheduling in the optimized kernel outweighs the benefits of improved cache reuse. Further analysis and tuning of the tile sizes and scheduling strategy may be necessary to achieve better performance with the optimized kernel.
