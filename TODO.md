@@ -7,7 +7,7 @@
 - [ ] 06: 8.50/10 -> Falko
 - [ ] 07: 8.50/10 -> Falko
 - [ ] 08: 6.50/10 -> Falko
-- [ ] 09: 0/10 -> Hannes
+- [x] 09: 0/10 -> Hannes
 - [ ] 10: 7/10 -> Hannes
 - [ ] formatierung in sphinx gegenchecken?
 - [ ] skelette aufräumen
@@ -42,6 +42,7 @@
 #### 08
 - Datei bitte "git_link.txt" nennen. Operationen zu den exakten Slots zuordnen. Tabelle mit Operationen ist kaput. Einige Operationen fehlen in der Tabelle. Aufgabe 3 wurde indirekt in Aufgabe 4 beantwortet. Bitte Aufgaben getrennt halten. Bei Aufgabe 4 war eine Skizzierung des Data-Layouts und der Pointer-Updates gewünscht und keine Skizze, auch wenn die gut gelungen ist.
 #### 09
-- keine abgabe
+- [x] keine abgabe
 #### 10
-- Kein Bericht abgeben. Beim MLIR code hat jeweils das zweite wait gefehlt (letzten 8 Zeilen von runtime_sequence duplizieren). Restlicher Code stimmt.
+- [ ] Kein Bericht abgeben. 
+- [x] Beim MLIR code hat jeweils das zweite wait gefehlt (letzten 8 Zeilen von runtime_sequence duplizieren). Restlicher Code stimmt.

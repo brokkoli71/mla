@@ -1207,6 +1207,14 @@ module {
       aiex.npu.dma_wait {symbol = @out_L2L3_5}
       aiex.npu.dma_wait {symbol = @out_L2L3_6}
       aiex.npu.dma_wait {symbol = @out_L2L3_7}
+      aiex.npu.dma_wait {symbol = @out_L2L3_0}
+      aiex.npu.dma_wait {symbol = @out_L2L3_1}
+      aiex.npu.dma_wait {symbol = @out_L2L3_2}
+      aiex.npu.dma_wait {symbol = @out_L2L3_3}
+      aiex.npu.dma_wait {symbol = @out_L2L3_4}
+      aiex.npu.dma_wait {symbol = @out_L2L3_5}
+      aiex.npu.dma_wait {symbol = @out_L2L3_6}
+      aiex.npu.dma_wait {symbol = @out_L2L3_7}
     }
   }
 }

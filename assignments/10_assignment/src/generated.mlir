@@ -1057,6 +1057,22 @@
       aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 26624][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_5} : memref<256x128xbf16>
       aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 28672][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_6} : memref<256x128xbf16>
       aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, 30720][2, 4, 16, 16][64, 16, 128, 1]) {id = 5 : i64, metadata = @out_L2L3_7} : memref<256x128xbf16>
+      aiex.npu.dma_wait {symbol = @out_L2L3_0}
+      aiex.npu.dma_wait {symbol = @out_L2L3_1}
+      aiex.npu.dma_wait {symbol = @out_L2L3_2}
+      aiex.npu.dma_wait {symbol = @out_L2L3_3}
+      aiex.npu.dma_wait {symbol = @out_L2L3_4}
+      aiex.npu.dma_wait {symbol = @out_L2L3_5}
+      aiex.npu.dma_wait {symbol = @out_L2L3_6}
+      aiex.npu.dma_wait {symbol = @out_L2L3_7}
+      aiex.npu.dma_wait {symbol = @out_L2L3_0}
+      aiex.npu.dma_wait {symbol = @out_L2L3_1}
+      aiex.npu.dma_wait {symbol = @out_L2L3_2}
+      aiex.npu.dma_wait {symbol = @out_L2L3_3}
+      aiex.npu.dma_wait {symbol = @out_L2L3_4}
+      aiex.npu.dma_wait {symbol = @out_L2L3_5}
+      aiex.npu.dma_wait {symbol = @out_L2L3_6}
+      aiex.npu.dma_wait {symbol = @out_L2L3_7}
     aie.objectfifo @in0_L2L1_0(%mem_tile_0_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_0_2, %tile_0_3, %tile_0_4, %tile_0_5}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>
     aie.objectfifo @in0_L2L1_1(%mem_tile_1_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_1_2, %tile_1_3, %tile_1_4, %tile_1_5}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>
     aie.objectfifo @in0_L2L1_2(%mem_tile_2_1 dimensionsToStream [<size = 2, stride = 512>, <size = 8, stride = 8>, <size = 8, stride = 64>, <size = 8, stride = 1>], {%tile_2_2, %tile_2_3, %tile_2_4, %tile_2_5}, 2 : i32) : !aie.objectfifo<memref<2x8x8x8xbf16>>

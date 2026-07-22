@@ -58,6 +58,10 @@ str += "".join(f"""
       aiex.npu.dma_memcpy_nd(%arg2[0, 0, 0, {2048*x+16384}][2, 4, 16, 16][64, 16, 128, 1]) {{id = 5 : i64, metadata = @out_L2L3_{x}}} : memref<256x128xbf16>"""
     for x in range(8))
 
+str += "".join(f"""
+      aiex.npu.dma_wait {{symbol = @out_L2L3_{x}}}"""
+    for _pass in range(2) for x in range(8))
+
 
 
 
