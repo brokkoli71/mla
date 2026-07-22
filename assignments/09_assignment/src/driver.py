@@ -61,14 +61,6 @@ def run() -> None:
     data_in1 = torch.randn(1024, 128, dtype=torch.bfloat16)
     data_out = torch.zeros(256, 128, dtype=torch.bfloat16)
 
-    data_in0 = torch.randn(16, 64, dtype=torch.bfloat16)
-    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
-    data_out = torch.zeros(16, 16, dtype=torch.bfloat16)
-
-    data_in0 = torch.randn(16*16, 64, dtype=torch.bfloat16)
-    data_in1 = torch.randn(64, 16, dtype=torch.bfloat16)
-    data_out = torch.zeros(16*16, 16, dtype=torch.bfloat16)
-
     # Create buffer objects with corresponding size
     bo_in0 = pyxrt.bo(device, data_in0.nbytes, pyxrt.bo.host_only, 0)
     bo_in1 = pyxrt.bo(device, data_in1.nbytes, pyxrt.bo.host_only, 0)
