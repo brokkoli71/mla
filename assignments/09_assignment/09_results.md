@@ -41,9 +41,15 @@ Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
 
 **Sketch** the data movement between main memory, shim tile, memory tile, and compute tile.
 - data will be loaded from main memory to the shim tile, then to the memory tile, and finally to the compute tile where the matrix multiplication will be performed. The output will be moved back in the reverse order.
+
 **Describe** which *mlir-aie* operation is involved in each step.
 - `aie.objectfifo` will create a channel from shim to memory tile and a channel from memory tile to compute tile. both will be linked by `aie.objectfifo.link`
 - `aiex.npu.dma_memcpy_nd()` maps main memory to shim and `aiex.npu.dma_wait` will wait until writing is finished
+
+**Data layout:**
+- in main memory the matrices are row-major (`in0: MK`, `in1: KN`, `out: MN`). the `aiex.npu.dma_memcpy_nd` on the shim does the tiling, its offsets/sizes/strides read that row-major data as the tiled views `in0: apmcrk`, `in1: crkbqn`, `out: apmbqn`
+- the actual layout change to the L1 layout (`in0: prmk`, `in1: rqkn`, `out: pqmn`) is done by the `dimensionsToStream` on the memory tile objectfifo (L2->L1), it reorders the dimensions while streaming into L1 so the compute kernel gets the `2x8x8x8` / `8x2x8x8` / `2x2x8x8` layout it expects.
+- on the way back the same thing happens in reverse, the out objectfifo `dimensionsToStream` turns `pqmn` back into a matrix tile and the output `dma_memcpy_nd` writes it to the row-major `out: MN`.
 
 ## Task 3 - Implementation
 
