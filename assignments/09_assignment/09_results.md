@@ -60,9 +60,11 @@ Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
 
 Implemented in `src/matmul_task3.mlir` as a `b`-outer loop (8 blocks). Per block we send one `out` (all 16 `a`-tiles of column `b`), the full `in0`, and `in1`. Since `in1` does not depend on `a`, its leftmost DMA dimension has `size=16, stride=0` to resend it 16× (once per `a`), with the `b` column-offset in the stride-1 slot.
 
-Diff of the original template (`src/matmul_original.mlir`) to our implementation (`src/matmul_task3.mlir`):
-```{literalinclude} src/matmul_task3.diff
-:language: diff
+The important change over the template is the `runtime_sequence` shown below (the core loop just replaces the `TODO`s with `scf.for` loops). It has one block per `b` (0-7); the blocks are identical except for the `b` offset:
+```{literalinclude} src/matmul_task3.mlir
+:language: text
+:start-at: aie.runtime_sequence
+:end-before: sphinx-snippet-end
 ```
 
 Can be run with `make run_matmul_task_3`

@@ -104,6 +104,7 @@ module {
       // dimension: a-repeat, c, rk, qn
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 112][16, 16, 64, 16][0, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_0} : memref<1024x128xbf16>
       aiex.npu.dma_wait {symbol = @out_L2L3_0}
+      // sphinx-snippet-end
     }
   }
 }
