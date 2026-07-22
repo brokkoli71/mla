@@ -8,7 +8,7 @@
 - [ ] 07: 8.50/10 -> Falko
 - [ ] 08: 6.50/10 -> Falko
 - [x] 09: 0/10 -> Hannes
-- [ ] 10: 7/10 -> Hannes
+- [x] 10: 7/10 -> Hannes
 - [ ] formatierung in sphinx gegenchecken?
 - [ ] skelette aufräumen
 - [ ] Projekt schreiben -> Hannes, Falko
@@ -44,5 +44,5 @@
 #### 09
 - [x] keine abgabe
 #### 10
-- [ ] Kein Bericht abgeben. 
+- [x] Kein Bericht abgeben. 
 - [x] Beim MLIR code hat jeweils das zweite wait gefehlt (letzten 8 Zeilen von runtime_sequence duplizieren). Restlicher Code stimmt.

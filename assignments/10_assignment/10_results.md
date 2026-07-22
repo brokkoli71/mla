@@ -1,4 +1,4 @@
-## Submission 10: Using the whole NPU
+# Submission 10: Using the whole NPU
 This week you will perform the matrix multiplication on the whole NPU.
 For this, you will adapt the data-movement code and execute your XDNA tensor kernel on all compute tiles.
 
