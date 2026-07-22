@@ -62,6 +62,7 @@ module {
       aiex.npu.dma_memcpy_nd(%arg1[0, 0, 0, 32][16, 16, 64, 16][0, 8192, 128, 1]) {id = 2 : i64, metadata = @in1_L3L2_0} : memref<1024x128xbf16>
 
       aiex.npu.dma_wait {symbol = @out_L2L3_0} // block 1 done
+      // sphinx-snippet-end
 
       // block 3 (b = 3), bd-set B
       aiex.npu.dma_memcpy_nd(%arg2[0, 3, 0, 0][16, 1, 16, 16][2048, 16, 128, 1]) {id = 8 : i64, metadata = @out_L2L3_0} : memref<256x128xbf16>

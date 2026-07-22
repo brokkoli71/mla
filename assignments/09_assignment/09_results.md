@@ -62,7 +62,7 @@ Implemented in `src/matmul_task3.mlir` as a `b`-outer loop (8 blocks). Per block
 
 The important change over the template is the `runtime_sequence` shown below (the core loop just replaces the `TODO`s with `scf.for` loops). It has one block per `b` (0-7); the blocks are identical except for the `b` offset:
 ```{literalinclude} src/matmul_task3.mlir
-:language: text
+:language: c++
 :start-at: aie.runtime_sequence
 :end-before: sphinx-snippet-end
 ```
@@ -74,6 +74,12 @@ Can be run with `make run_matmul_task_3`
 
 Implemented in `src/matmul.mlir`. The scheduling changed: two BD-id sets `{0,1,2}` and `{8,9,10}` alternate per block, and blocks 0 and 1 are both issued before the first `dma_wait`. Each following block is issued before waiting on the previous one.
 
+The first two blocks and the reuse of set `{0,1,2}` after the first wait are shown below (blocks 3-7 repeat the pattern):
+```{literalinclude} src/matmul.mlir
+:language: c++
+:start-at: block 0
+:end-before: sphinx-snippet-end
+```
 ## Task 5 - Buffer Placement (optional)
 
 **Find** the buffer placement operations inside the lowered MLIR code (`build/matmul.mlir.prj/input_with_addresses.mlir`).
