@@ -31,7 +31,7 @@ module { // "wir sind in einem mla modul"
             %in0 = aie.objectfifo.subview.access %buffer_in0[0] : !aie.objectfifosubview<memref<2x8x8x8xbf16>> -> memref<2x8x8x8xbf16>
             %buffer_in1 = aie.objectfifo.acquire @in1_L2L1_0(Consume, 1) : !aie.objectfifosubview<memref<8x2x8x8xbf16>>
             %in1 = aie.objectfifo.subview.access %buffer_in1[0] : !aie.objectfifosubview<memref<8x2x8x8xbf16>> -> memref<8x2x8x8xbf16>
-            func.call @matmul(%in0, %in1, %out) : (memref<2x8x2x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) -> ()
+            func.call @matmul(%in0, %in1, %out) : (memref<2x8x8x8xbf16>, memref<8x2x8x8xbf16>, memref<2x2x8x8xbf16>) -> ()
             aie.objectfifo.release @in0_L2L1_0(Consume, 1) // "ich habe gelesen, können wieder überschrieben werden"
             aie.objectfifo.release @in1_L2L1_0(Consume, 1)
           }
