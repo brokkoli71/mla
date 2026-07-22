@@ -52,9 +52,14 @@ Set the maximum absolute error to `2` and the maximum relative error to `0.5`.
 
 2. **Verify** your implementation by executing `make run_matmul`.
 
+Implemented in `src/matmul_task3.mlir` as a `b`-outer loop (8 blocks). Per block we send one `out` (all 16 `a`-tiles of column `b`), the full `in0`, and `in1`. Since `in1` does not depend on `a`, its leftmost DMA dimension has `size=16, stride=0` to resend it 16× (once per `a`), with the `b` column-offset in the stride-1 slot.
+
+Can be run with `make run_matmul_task_3`
 ## Task 4 - Performance
 
 **Change** the data movement inside the MLIR code so that there is no blocking wait, i.e., there is always a data movement operation that can be issued (except for the last one).
+
+Implemented in `src/matmul.mlir`. The scheduling changed: two BD-id sets `{0,1,2}` and `{8,9,10}` alternate per block, and blocks 0 and 1 are both issued before the first `dma_wait`. Each following block is issued before waiting on the previous one.
 
 ## Task 5 - Buffer Placement (optional)
 
