@@ -124,6 +124,7 @@ $$m_{L2} + n_{L2} \le 48$$
 
 We want to maximize the values calculated per swizzle block, thus maximizing $m_{L2} \cdot n_{L2}$. Therefore, good values would be $m_{L2} = n_{L2} = 16$. While only using 67% of the L2 cache, we stick to sizes being a power of 2.
 
+### Implementation
 c) Implement the kernel
 
 Implement a cuTile kernel that computes `cmk, ckn -> cmn` following your optimized config from b). **Verify** correctness of your kernel.
@@ -150,14 +151,21 @@ d) Use `triton.testing.do_bench` (or a similar benchmark function provided by cu
 :language: python
 :pyobject: multiply_3d
 ```
+### Results
 `multiply` was our first implementation. It reshapes `A`, `B`, `C` into 6D tensors mirroring the tiling hierarchy (`c, m_outer, m_l2, k_outer, m_prim, k_prim`, ...), so each output tile is reached by indexing directly into its `(m_outer, m_l2)` / `(n_outer, n_l2)` position, matching the config from b) closely. It ended up slower than the row-major baseline.
 
 To find out why, we added `multiply_3d`. It uses the same `swizzle_position` block-id decomposition, so both kernels compute the same `(m, n)` tile for a given block in the same order. The only difference is that `multiply_3d` indexes directly into the `(c, m, k)` / `(c, k, n)` / `(c, m, n)` tensors instead of the reshaped 6D ones. That separates two possible explanations: a bad swizzle pattern, or overhead from the 6D tensor layout.
 
 `multiply`'s 6D loads carry four extra size-1 index dimensions per `ct.load`, which `multiply_3d` avoids. Once that overhead is gone, `multiply_3d` beats the baseline.
 
-```{literalinclude} src/task4_results.txt
+```{literalinclude} src/task4_results_original.txt
 ```
 
-![alt text](../../assignments/05_assignment/src/task4_results.png)
+![alt text](../../assignments/05_assignment/src/task4_results_original.png)
 
+### Update
+after building cutile with `TMA_MAX_NDIM = 10` the performance of the 6D kernel improved significantly:
+
+```{literalinclude} src/task4_results.txt```
+
+![alt text](../../assignments/05_assignment/src/task4_results.png)
