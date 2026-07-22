@@ -26,7 +26,7 @@ The approach we follow here, was to convert all the values beforehand, keeping t
 On the higher level this makes sense. 
 The matrix multiplication is implemented by iteratively computing $M=N=16$ blocks of the result matrix. 
 4 `vmac.f` instructions (see code above) compute the results for 8 steps along the $K$ dimension, which will be accumulated into 4 dm registers. 
-This block size is capped by the maximum amount of values kept in the dm accumulator registers (theoretically there is one spare register but that is used for ...).
+This block size is capped by the maximum amount of values kept in the dm accumulator registers.
 For higher $K$ values we can not keep input values in the registers when we need them for the next 16x16 result block. 
 Therefore, we must reload them. 
 For the on-the-fly-conversion implementation that means converting this values again. 
@@ -89,7 +89,8 @@ There are 3 remaining sizes of matrix multiplication fulfilling this restriction
 $K=64, N=M\in\{16, 32, 64\}$ 
 
 #### Implementation
-
+TODO:
+- explain:  "As we will discuss later, our implementation of the conversion requires 12 cycles per storing a 8x64 matrix block"
 #### Evaluation
 We evaluate the efficiency of our implementation in two ways: firstly on the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
 

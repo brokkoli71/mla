@@ -166,6 +166,7 @@ To find out why, we added `multiply_3d`. It uses the same `swizzle_position` blo
 ### Update
 after building cutile with `TMA_MAX_NDIM = 10` the performance of the 6D kernel improved significantly:
 
-```{literalinclude} src/task4_results.txt```
+```{literalinclude} src/task4_results.txt
+```
 
 ![alt text](../../assignments/05_assignment/src/task4_results.png)
