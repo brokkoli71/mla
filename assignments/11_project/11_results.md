@@ -24,13 +24,13 @@ In the lecture we found no faster way of converting BF16 to BFP16 on the fly wit
 The approach we follow here was to convert all the values beforehand, keeping them in the L1 memory of the compute tile and afterwards using these values for multiplication.
 
 On the higher level this makes sense. 
-The matrix multiplication is implemented by iteratively computing $M=N=16$ blocks of the result matrix. 
+The matrix multiplication is implemented by iteratively computing $16\times16$ blocks of the result matrix. 
 4 `vmac.f` instructions (see code above) compute the results for 8 steps along the $K$ dimension, which will be accumulated into 4 dm registers. 
 This block size is capped by the maximum amount of values kept in the dm accumulator registers.
 For higher $K$ values, we cannot keep input values in the registers when we need them for the next 16x16 result block. 
 Therefore, we must reload them. 
 For the on-the-fly-conversion implementation, that means converting these values again. 
-Hiding this conversion latency is not fully working because of the required `vmul.f` operations.
+This conversion latency cannot be fully hidden because of the required `vmul.f` operations.
 When the values are already converted, this work would not be needed anymore.
 But on the other hand we would need to convert the values beforehand. 
 The hope is that at some size of $M$ and $N$ this overhead will be compensated for by the elimination of duplicate work and lead to a performance improvement.
@@ -46,7 +46,7 @@ The total expected cycles of the on-the-fly-conversion version are the number of
 $$1.5\cdot \frac {N\cdot M \cdot K}{512} + \Theta(1)$$
 
 In contrast, at the core of the kernel we aim to reach the optimum of one `vmac.f` per cycle plus warmup and cooldown. 
-On the other hand we need to convert both input matrices of size $M\times K$ and $K\times N$ beforehand.
+In addition, we need to convert both input matrices of size $M\times K$ and $K\times N$ beforehand.
 As we will discuss later, our implementation of the conversion requires 12 cycles for storing an 8x64 matrix block. Assuming that the input matrices are multiples of these blocks, we would need $\frac{12}{8\cdot64}(MK+KN) = \frac{3}{128}(M+N)K$ cycles plus a constant warmup for loading the first values.
 
 $$\frac {N\cdot M \cdot K}{512} + \frac{3}{128}(M+N)K + \Theta(1)$$
