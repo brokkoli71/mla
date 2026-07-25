@@ -211,23 +211,23 @@ vmac.f dm2, dm2, ex2, ex1, r0 ; vlda.pop.576 ex8, [p0, lf0, r24]    ; vldb.pop.5
 vmac.f dm3, dm3, ex2, ex3, r0 ; vlda.pop.576 ex10,[p0, lf0, r24]    ; vldb.pop.576 ex11,[p1, lf1, r25] ; nops                               ; nopm           ; nopx
 vmac.f dm0, dm0, ex0, ex1, r0 ; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; nops                               ; nopm           ; nopx
 vmac.f dm1, dm1, ex0, ex3, r0 ; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; nops                               ; nopm           ; nopx
-vmac.f dm2, dm2, ex2, ex1, r0 ; vlda.conv.fp32.bf16 cml3, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm3, dm3, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cmh3, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm0, dm0, ex4, ex5, r0 ; vlda.conv.fp32.bf16 cml4, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm1, dm1, ex4, ex7, r0 ; vlda.conv.fp32.bf16 cmh4, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm0, dm2, ex6, ex5, r0 ; vlda.conv.fp32.bf16 cml1, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm2, dm3, ex6, ex7, r0 ; vlda.conv.fp32.bf16 cmh1, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx //0000
+vmac.f dm0, dm2, ex2, ex1, r0 ; vlda.conv.fp32.bf16 cml2, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm3, dm3, ex2, ex3, r0 ; vlda.conv.fp32.bf16 cmh2, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm0, dm0, ex4, ex5, r0 ; vlda.conv.fp32.bf16 cml1, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm1, dm1, ex4, ex7, r0 ; vlda.conv.fp32.bf16 cmh1, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm0, dm0, ex6, ex5, r0 ; vlda.conv.fp32.bf16 cml4, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm3, dm3, ex6, ex7, r0 ; vlda.conv.fp32.bf16 cmh4, [p2], #64 ; nopb                             ; nops                               ; nopm           ; nopx //0000
 
-vmac.f dm4, dm4, ex8, ex9, r0 ; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx 
-vmac.f dm0, dm3, ex8, ex11, r0; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx
-vmac.f dm1, dm4, ex10, ex9, r0; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cml0, [p3], #64 ; nopm           ; nopx
-vmac.f dm2, dm1, ex10, ex11,r0; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh0, [p3], #64 ; nopm           ; nopx
-vmac.f dm4, dm4, ex0, ex1, r0 ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cml1, [p3], #64 ; nopm           ; nopx
-vmac.f dm0, dm0, ex0, ex3, r0 ; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh1, [p3], #64 ; nopm           ; nopx
-vmac.f dm1, dm1, ex2, ex1, r0 ; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; vst.conv.bf16.fp32 cml0, [p3], #64 ; nopm           ; nopx
-vmac.f dm2, dm2, ex2, ex3, r0 ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cmh0, [p3], #64 ; nopm           ; nopx
-vmac.f dm4, dm4, ex0, ex1, r0 ; vlda.fill.512 [p0, lf0, r24]        ; vldb.fill.512 [p1, lf1, r25]     ; vst.conv.bf16.fp32 cml2, [p3], #64 ; nopm           ; nopx
-vmac.f dm0, dm0, ex0, ex3, r0 ; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh2, [p3], #64 ; nopm           ; nopx
+vmac.f dm1, dm4, ex8, ex9, r0 ; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx 
+vmac.f dm2, dm2, ex8, ex11, r0; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx
+vmac.f dm0, dm1, ex10, ex9, r0; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cml0, [p3], #64 ; nopm           ; nopx
+vmac.f dm4, dm4, ex10, ex11,r0; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh0, [p3], #64 ; nopm           ; nopx
+vmac.f dm1, dm1, ex0, ex1, r0 ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cml1, [p3], #64 ; nopm           ; nopx
+vmac.f dm2, dm2, ex0, ex3, r0 ; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh1, [p3], #64 ; nopm           ; nopx
+vmac.f dm0, dm0, ex2, ex1, r0 ; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; vst.conv.bf16.fp32 cml0, [p3], #64 ; nopm           ; nopx
+vmac.f dm4, dm4, ex2, ex3, r0 ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cmh0, [p3], #64 ; nopm           ; nopx
+vmac.f dm4, dm4, ex0, ex1, r0 ; vlda.fill.512 [p0, lf0, r24]        ; vldb.fill.512 [p1, lf1, r25]     ; vst.conv.bf16.fp32 cml3, [p3], #64 ; nopm           ; nopx
+vmac.f dm0, dm0, ex0, ex3, r0 ; vlda.pop.576 ex0, [p0, lf0, r24]    ; vldb.pop.576 ex1, [p1, lf1, r25] ; vst.conv.bf16.fp32 cmh3, [p3], #64 ; nopm           ; nopx
 vmac.f dm1, dm1, ex2, ex1, r0 ; vlda.pop.576 ex2, [p0, lf0, r24]    ; vldb.pop.576 ex3, [p1, lf1, r25] ; nops                               ; nopm           ; nopx
 vmac.f dm2, dm2, ex2, ex3, r0 ; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx
 vmac.f dm4, dm4, ex0, ex1, r0 ; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx
