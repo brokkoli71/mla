@@ -56,13 +56,13 @@ vmul.f dm4, y1, y4, r4 ; nopa                                ; nopb             
 vmul.f dm4, y2, y4, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm2, [p2, sf, r26] ; nopm       ; nopx
 vmul.f dm4, y3, y4, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
 nopv                   ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; nopm       ; nopx
-nopv                   ; nopa                                ; nopb               ; movs p4, p2                                         ; mov p2, p3 ; nopx
-nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; ret lr
+nopv                   ; nopa                                ; nopb               ; movs p4, p2                                         ; mov p2, p3 ; ret lr
+nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
 nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
 nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
 nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
 nopv                   ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; nopm       ; nopx
-nopv                   ; nopa                                ; nopb               ; nops                                                ; nopm       ; nopx
+
 
 
 
