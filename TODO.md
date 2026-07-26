@@ -4,6 +4,7 @@
 - [x] 03: 7.5/10 Block swizzling -> Hannes
 - [x] 04: 10/10
 - [x] 05: 8.50/10 config fixen -> Hannes
+- [ ] Hannes: generate_config gegenchecken 
 - [ ] 06: 8.50/10 -> Falko
 - [ ] 07: 8.50/10 -> Falko
 - [ ] 08: 6.50/10 -> Falko
