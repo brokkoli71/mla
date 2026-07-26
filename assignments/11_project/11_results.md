@@ -128,13 +128,18 @@ The matmul kernel reads the converted matrices back with both load engines in pa
 
 For the output tile size of 16x16 kernel issues one `vmac.f` per cycle, which is the maximum throughput. The `vmac.f` computation results are converted back to BF16 and written out with `vst.conv.bf16.fp32`.
 
-```{literalinclude} ../../assignments/11_project/src/size32/matmul_optimiert.s
+```{literalinclude} ../../assignments/11_project/src/size16/matmul_optimiert.s
 :language: assembly
 :lines: 204-258
 ```
 
 For the output tile size 32x32, four 16x16 Output blocks needs to be computed. Since there are only 5 accumulator registers, we need to store the computed output tiles for each block and load the new block. Loads and stores needs two intructions to handle one accumulator regiter, whereas the `vmac.f` instruction computes and read the whole accumulator register in one instruction. This forces a gap of two nops in the `vmac.f` instructions, because it has to wait until the registers are stored, before the new output tile can be loaded. Since you have 5 accumultor Register and need only 4 for the 16x16 block, one can register can be preloaded without influencing the current output block.
 Attemps were made to optimise this further in `size32/matmul_optimiert.s` but without sucess.
+
+```{literalinclude} ../../assignments/11_project/src/size32/matmul_optimiert.s
+:language: assembly
+:lines: 350-377
+```
 
 #### Evaluation
 We evaluate the efficiency of our implementation in two ways: firstly by the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
