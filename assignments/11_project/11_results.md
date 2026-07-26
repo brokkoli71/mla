@@ -134,7 +134,13 @@ For the output tile size of 16x16 kernel issues one `vmac.f` per cycle, which is
 ```
 
 For the output tile size 32x32, four 16x16 Output blocks needs to be computed. Since there are only 5 accumulator registers, we need to store the computed output tiles for each block and load the new block. Loads and stores needs two intructions to handle one accumulator regiter, whereas the `vmac.f` instruction computes and read the whole accumulator register in one instruction. This forces a gap of two nops in the `vmac.f` instructions, because it has to wait until the registers are stored, before the new output tile can be loaded. Since you have 5 accumultor Register and need only 4 for the 16x16 block, one can register can be preloaded without influencing the current output block.
-Attemps were made to optimise this further in `size32/matmul_optimiert.s` but without sucess.
+
+```{literalinclude} ../../assignments/11_project/src/size32/matmul.s
+:language: assembly
+:lines: 137-192
+```
+
+Attemps were made to optimise this further in `size32/matmul_optimiert.s`, using just one or zero nops between blocks. But this doesn't work now and needs further work. 
 
 ```{literalinclude} ../../assignments/11_project/src/size32/matmul_optimiert.s
 :language: assembly
