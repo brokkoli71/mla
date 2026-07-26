@@ -1,60 +1,3 @@
-//   .section .text.conv,"ax",@progbits
-//   .globl conv
-//   .p2align 4
-//   .type conv,@function
-// conv:
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; nopb               ; movs p3, p1                                         ; mov p2, p0      ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; nopb               ; movs p4, p2                                         ; mov m3, #576  ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; nopb               ; nops                                                ; mov crrnd, #12  ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; movxm r3, #16256
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x1, [p1], #64 ; nops                                                ; vbcst.16 x10, r3 ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x2, [p1], #64 ; nops                                                ; vbcst.16 x11, r3 ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x3, [p1], #64 ; nops                                                ; mov r4, #60     ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x4, [p1], #64 ; nops                                                ; mov r26, #0     ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x6, [p1], #64 ; nops                                                ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x7, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x8, [p1], #64 ; nops                                                ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x9, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x1, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx // r26 max -64 danach kaputt
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x2, [p1], #64 ; nops                                                ; nopm       ; nopx
-// nopv                   ; padda [p4], m3                      ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; vldb x4, [p1], #64 ; nops                                                ; nopm       ; nopx
-// vmul.f dm4, y0, y5, r4 ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y1, y5, r4 ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; nopb               ; nops                                                ; nopm       ; nopx
-// vmul.f dm4, y2, y5, r4 ; vlda.conv.fp32.bf16 cml1, [p0], #64 ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y3, y5, r4 ; vlda.conv.fp32.bf16 cmh1, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; nopm       ; nopx
-// vmul.f dm4, y4, y5, r4 ; vlda.conv.fp32.bf16 cml2, [p0], #64 ; vldb x1, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y0, y5, r4 ; vlda.conv.fp32.bf16 cmh2, [p0], #64 ; vldb x2, [p1], #64 ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p3 ; nopx
-// vmul.f dm4, y1, y5, r4 ; vlda.conv.fp32.bf16 cml3, [p0], #64 ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y2, y5, r4 ; vlda.conv.fp32.bf16 cmh3, [p0], #64 ; vldb x4, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml4, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh4, [p0], #64 ; vldb x6, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x7, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x8, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml1, [p0], #64 ; vldb x9, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh1, [p0], #64 ; vldb x0, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cml2, [p0], #64 ; vldb x1, [p1], #64 ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p4 ; nopx
-// nopv                   ; vlda.conv.fp32.bf16 cmh2, [p0], #64 ; vldb x2, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; padda [p3], m3                      ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm1, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; vldb x4, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm2, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y0, y5, r4 ; nopa                                ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm3, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y1, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y2, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y3, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm1, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y4, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm2, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y0, y5, r4 ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p3 ; nopx
-// vmul.f dm4, y1, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// vmul.f dm4, y2, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; ret lr
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
-// nopv                   ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; nopm       ; nopx
-
   .section .text.conv,"ax",@progbits
   .globl conv
   .p2align 4
@@ -116,6 +59,63 @@ nopv                   ; nopa                                ; nopb             
 nopv                   ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; nopm       ; nopx
 
 
+
+//   .section .text.conv,"ax",@progbits
+//   .globl conv
+//   .p2align 4
+//   .type conv,@function
+// conv:
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; nopb               ; movs p3, p1                                         ; mov p2, p0      ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; nopb               ; movs p4, p2                                         ; mov m3, #576  ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; nopb               ; nops                                                ; mov crrnd, #12  ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; movxm r3, #16256
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x1, [p1], #64 ; nops                                                ; vbcst.16 x10, r3 ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x2, [p1], #64 ; nops                                                ; vbcst.16 x11, r3 ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x3, [p1], #64 ; nops                                                ; mov r4, #60     ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x4, [p1], #64 ; nops                                                ; mov r26, #0     ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x6, [p1], #64 ; nops                                                ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x7, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x8, [p1], #64 ; nops                                                ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x9, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x1, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx // r26 max -64 danach kaputt
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x2, [p1], #64 ; nops                                                ; nopm       ; nopx
+// nopv                   ; padda [p4], m3                      ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; vldb x4, [p1], #64 ; nops                                                ; nopm       ; nopx
+// vmul.f dm4, y0, y5, r4 ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y1, y5, r4 ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; nopb               ; nops                                                ; nopm       ; nopx
+// vmul.f dm4, y2, y5, r4 ; vlda.conv.fp32.bf16 cml1, [p0], #64 ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y3, y5, r4 ; vlda.conv.fp32.bf16 cmh1, [p0], #64 ; vldb x0, [p1], #64 ; nops                                                ; nopm       ; nopx
+// vmul.f dm4, y4, y5, r4 ; vlda.conv.fp32.bf16 cml2, [p0], #64 ; vldb x1, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y0, y5, r4 ; vlda.conv.fp32.bf16 cmh2, [p0], #64 ; vldb x2, [p1], #64 ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p3 ; nopx
+// vmul.f dm4, y1, y5, r4 ; vlda.conv.fp32.bf16 cml3, [p0], #64 ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y2, y5, r4 ; vlda.conv.fp32.bf16 cmh3, [p0], #64 ; vldb x4, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml4, [p0], #64 ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh4, [p0], #64 ; vldb x6, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml0, [p0], #64 ; vldb x7, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh0, [p0], #64 ; vldb x8, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml1, [p0], #64 ; vldb x9, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh1, [p0], #64 ; vldb x0, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cml2, [p0], #64 ; vldb x1, [p1], #64 ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p4 ; nopx
+// nopv                   ; vlda.conv.fp32.bf16 cmh2, [p0], #64 ; vldb x2, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; padda [p3], m3                      ; vldb x3, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm1, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; vldb x4, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm2, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y0, y5, r4 ; nopa                                ; vldb x5, [p1], #64 ; vst.push.576.conv.bfp16ebs8.fp32 dm3, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y1, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y2, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm0, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y3, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm1, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y4, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm2, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y0, y5, r4 ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; mov p2, p3 ; nopx
+// vmul.f dm4, y1, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// vmul.f dm4, y2, y5, r4 ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; ret lr
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.push.576.conv.bfp16ebs8.fp32 dm4, [p2, sf, r26] ; nopm       ; nopx
+// nopv                   ; nopa                                ; nopb               ; vst.flush.512.conv [p2, sf, r26]                    ; nopm       ; nopx
 
 
 //   .section .text.conv,"ax",@progbits
