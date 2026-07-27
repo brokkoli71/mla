@@ -140,8 +140,7 @@ nopv                          ; nopa                                ; nopb      
 nopv                          ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cmh2, [p3], #64 ; nopm           ; nopx
 nopv                          ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cml3, [p3], #64 ; nopm           ; nopx
 nopv                          ; nopa                                ; nopb                             ; vst.conv.bf16.fp32 cmh3, [p3], #64 ; nopm           ; nopx
-  
-nopv                          ; nopa                               ; nopb                             ; nops                               ; nopm           ; nopx
+nopv                          ; nopa                                ; nopb                             ; nops                               ; nopm           ; nopx
 
 
 

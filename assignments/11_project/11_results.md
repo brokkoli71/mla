@@ -18,6 +18,7 @@ e.g.:
   vmac.f dm3, dm3, ex3, ex5, r0 ; nopa                                ; vldb x9, [p1], #64  ; vconv.bfp16ebs8.fp32 ex3, dm4       ; mov m1, r7               ; nopx
   vmul.f dm4, y3, y5, r22       ; vlda.conv.fp32.bf16 cml4, [p0], #64 ; nopb                ; vconv.bfp16ebs8.fp32 ex5, dm4       ; vshuffle x6, x8, x9, r20 ; nopx
 ```
+(see `baseline_parameterized/tensor_kernel_m1xn1xk1_bf16_bf16_bf16`)
 
 Optimally, we aim to schedule one `vmac.f` per cycle, resulting in the maximum throughput of matrix multiplications, as the vector unit is fully occupied calculating `vmac.f` multiplications.  
 In the lecture we found no faster way of converting BF16 to BFP16 on the fly without occupying the vector unit, resulting in a slowdown of factor 1.5 compared to the optimum.
@@ -149,9 +150,13 @@ Attemps were made to optimise this further in `size32/matmul_optimized.s`, using
 ```
 
 #### Evaluation
-We evaluate the efficiency of our implementation in two ways: firstly by the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
+We evaluate the efficiency of our `matmul.s` kernel implementations in two ways: firstly by the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
 
 ###### Cycles
+kernel; size 16; size 32; size 64
+conversion; 58; 107; 203
+matmul; 56 ; 159; 566
+baseline;
 - zeilen zählen, warmup, cooldown. 
 - ist die anzahl gleichbleibend über verschiedene größen
 - entweder für größen separat oder nochmal in die formel am anfang einsetzen
