@@ -150,17 +150,63 @@ Attemps were made to optimise this further in `size32/matmul_optimized.s`, using
 ```
 
 #### Evaluation
-We evaluate the efficiency of our `matmul.s` kernel implementations in two ways: firstly by the number of lines/cycles of the kernel code and secondly via empirical benchmarks.
+We evaluate our kernels in two ways: statically, by counting the issued instruction bundles (one bundle is issued per cycle, so this is the cycle count ignoring stalls), and empirically, by measuring the execution time on the NPU.
 
-###### Cycles
-kernel; size 16; size 32; size 64
-conversion; 58; 107; 203
-matmul; 56 ; 159; 566
-baseline;
-- zeilen zählen, warmup, cooldown. 
-- ist die anzahl gleichbleibend über verschiedene größen
-- entweder für größen separat oder nochmal in die formel am anfang einsetzen
+**Static cycle counts.** The following table lists the issued bundles per kernel and size. For our approach the relevant cost is the sum of the conversion and the matmul kernel, which we compare against the fused baseline:
 
-###### Benchmarks
+| kernel | size 16 | size 32 | size 64 |
+| --- | --- | --- | --- |
+| conversion | 58 | 107 | 203 |
+| matmul | 56 | 159 | 566 |
+| this work (conversion + matmul) | 114 | 266 | 769 |
+| fused baseline | 78 | 240 | 888 |
 
-- grafik mit gemessenen werten und cycles in gestrichelt (beide y achsen über summe der daten normalisiert (mean + std))
+By this measure our approach is more expensive at $N=16$ and $N=32$ but cheaper at $N=64$; the crossover therefore lies between $32$ and $64$, consistent with the analytical prediction $N>48$ derived above.
+
+**Empirical benchmarks.** We benchmarked the conversion kernel and the matmul kernel separately, both together (our approach), and the fused baseline. In the respective `.mlir` files the compute is repeated 100000 times per launch, so the host dispatch overhead is amortized over all iterations. For each configuration we recorded 300 timed launches after 20 untimed warmup launches and report the median time per multiplication (the measured launch time divided by the number of on-chip repetitions), together with the 25th and 75th percentiles for robustness against occasional host-scheduling outliers. The measured medians (in µs per multiplication) are:
+
+| kernel | size 16 | size 32 | size 64 |
+| --- | --- | --- | --- |
+| this work (conversion + matmul) | 0.09 | 0.20 | 0.49 |
+| &emsp;conversion | 0.05 | 0.10 | 0.18 |
+| &emsp;matmul | 0.04 | 0.11 | 0.33 |
+| fused baseline | 0.06 | 0.16 | 0.52 |
+
+The 25th–75th percentiles differ from the median by at most $0.01\,\mu s$, so the measurements are highly repeatable. Relative to the baseline, our approach runs at $0.66\times$, $0.82\times$ and $1.06\times$ its speed at $N=16$, $32$ and $64$; it is thus slower for the two smaller sizes and faster at $N=64$.
+
+```{figure} figures/time_per_matmul_us.png
+:alt: Measured time per multiplication for the unfused (this work) and fused baseline kernels
+:width: 100%
+
+Measured time per multiplication (median, with the 25th–75th percentile band) for our approach ("unfused") and the fused baseline, for $M=N\in\{16,32,64\}$ and $K=64$.
+```
+
+The two curves cross between $N=32$ and $N=64$: the fused baseline is faster at the two smaller sizes, while our pre-converting approach is faster at $N=64$. This is the crossover expected from both the analytical model and the static cycle counts.
+
+```{figure} figures/conv_matmul_split_us.png
+:alt: Time of the unfused kernel split into conversion and matmul
+:width: 100%
+
+Time per multiplication of our approach, split into the conversion and the matmul kernel (stacked; the markers show the two measured points and their sum).
+```
+
+Splitting our approach into its two kernels shows why: the conversion time grows roughly linearly with $N$ ($0.05 \to 0.10 \to 0.18\,\mu s$), whereas the matmul time grows roughly quadratically ($0.04 \to 0.11 \to 0.33\,\mu s$), matching the $\Theta(N)$ conversion cost and the $\Theta(N^2)$ number of `vmac.f` instructions. The conversion's share of the total therefore shrinks as the matrices grow, so the one-time conversion is increasingly amortized by the cheaper multiplication, which is the effect our approach relies on.
+
+Finally, we compare the speedup of our approach over the fused baseline (baseline time / our time) from three sources: the measured benchmark times, the static cycle counts (baseline / (conversion + matmul)), and the analytical model from the *Expected speedup* section, which for $M=N$ and $K=64$ reduces to $1.5N/(N+24)$.
+
+| $N$ | measured | cycle counts | analytical |
+| --- | --- | --- | --- |
+| 16 | 0.66 | 0.68 | 0.60 |
+| 32 | 0.82 | 0.90 | 0.86 |
+| 64 | 1.06 | 1.15 | 1.09 |
+
+```{figure} figures/speedup_comparison.png
+:alt: Speedup of our approach over the fused baseline from measurement, cycle counts, and the analytical model
+:width: 100%
+
+Speedup of our approach over the fused baseline (baseline time / our time) for $M=N\in\{16,32,64\}$ and $K=64$, from the measured times, the static cycle counts, and the analytical model $1.5N/(N+24)$. A value above the dashed line at $1$ means our approach is faster.
+```
+
+All three sources show the same trend and cross $1$ between $N=32$ and $N=64$: our approach becomes faster only for the largest matrices, consistent with the analytical crossover at $N=48$.
+
+The analytical model deviates most at $N=16$, where it predicts $0.60$ while the measurement is $0.66$. This is because the analytical model drops the constant $\Theta(1)$ warmup and cooldown terms, whose relative weight is largest for the smallest kernel; the cycle-count curve, which includes these constants, stays closest to the measurement there ($0.68$). For $N=32$ and $N=64$ the measured speedup lies slightly below both predictions ($1.06$ against $1.15$ and $1.09$ at $N=64$), consistent with the additional per-call host overhead that neither model captures. Overall, the expected trend is confirmed.

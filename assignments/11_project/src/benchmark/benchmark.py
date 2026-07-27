@@ -7,9 +7,9 @@ the *_benchmark.mlir kernel for each size: its inner loop repeats matmul
 (and conv, for the unfused kernels) BENCH_REPS times per host launch, so a
 single kernel()+wait() drives BENCH_REPS on-chip iterations and host
 dispatch overhead is amortized over all of them rather than paid once per
-sample. Latency is reported as a median (with p25/p75) rather than a plain
-mean since a handful of host-scheduling outliers can otherwise skew a small
-sample.
+sample. Time per multiplication is reported as a median (with p25/p75) rather
+than a plain mean since a handful of host-scheduling outliers can otherwise
+skew a small sample.
 
 The "unfused" kernels transpose in1 on the host (N x K) and un-tile the
 output on the host. The "baseline" kernel takes in1 in its natural K x N
@@ -24,11 +24,9 @@ share of the total per-call time.
 Usage (from the assignment directory, after building xclbins):
     python3 src/benchmark/benchmark.py
 
-Latency and throughput (each vs. size, one line per kernel) are written
-next to this script as latency_us.png and throughput_gflops.png. The
-conv-vs-matmul split is written as conv_matmul_split_us.png (stacked
-latency) and conv_matmul_split_gflops.png (per-kernel throughput, not
-stacked since GFLOP/s isn't additive).
+Time per multiplication (vs. size, one line per kernel) is written to the
+project's figures/ directory as time_per_matmul_us.png. The conv-vs-matmul
+split is written as conv_matmul_split_us.png (stacked time per multiplication).
 
 Requires: pyxrt, numpy, torch, matplotlib (for plots; benchmarking itself
 works without it)
@@ -47,6 +45,14 @@ ITERS = 300    # timed kernel launches per size
 WARMUP = 20    # untimed warmup launches per size
 K = 64         # inner dimension is fixed at 64 for all kernels
 SCRIPT_DIR = Path(__file__).resolve().parent
+FIG_DIR = SCRIPT_DIR.parent.parent / "figures"   # assignments/11_project/figures
+
+# Static cycle counts (issued instruction bundles = cycles ignoring stalls) taken
+# from the kernel sources; used as the "predicted" reference against which the
+# measured times are compared in plot_measured_vs_predicted().
+PREDICTED_CYCLES_CONV = {16: 58, 32: 107, 64: 203}
+PREDICTED_CYCLES_MATMUL = {16: 56, 32: 159, 64: 566}
+PREDICTED_CYCLES_BASELINE = {16: 78, 32: 240, 64: 888}
 
 # Fixed categorical order (never cycled): slot 1 = unfused, slot 2 = baseline,
 # slot 3 = conv, slot 4 = matmul.
@@ -122,19 +128,11 @@ def _stats_from_times(times, size: int):
     mean_s = float(np.mean(times))
     p25_s, p75_s = (float(x) for x in np.percentile(times, [25, 75]))
 
-    flops = 2 * size * size * K
-    gflops = flops / median_s / 1e9
-    gflops_samples = flops / times / 1e9
-    gflops_p25, gflops_p75 = (float(x) for x in np.percentile(gflops_samples, [25, 75]))
-
     return {
         "median_s": median_s,
         "mean_s": mean_s,
         "p25_s": p25_s,
         "p75_s": p75_s,
-        "gflops": gflops,
-        "gflops_p25": gflops_p25,
-        "gflops_p75": gflops_p75,
     }
 
 
@@ -143,7 +141,7 @@ BENCH_REPS = 100000  # must match %c_reps in the matmul_benchmark.mlir files
 
 def benchmark(size: int, iters: int, warmup: int, baseline: bool = False):
     """
-    Steady-state per-call latency, measured via the *_benchmark.mlir kernel:
+    Steady-state per-call time, measured via the *_benchmark.mlir kernel:
     its inner loop repeats matmul (and conv, for the unfused kernels)
     BENCH_REPS times inside a single acquire/release cycle, so one host
     kernel()+wait() drives BENCH_REPS on-chip iterations before returning.
@@ -215,7 +213,7 @@ def benchmark_dummy_baseline(label_size: int, iters: int, warmup: int):
     Time the baseline32/baseline64 kernels. Their data movement is fixed at
     size16's 16x64/64x16/16x16 buffers (the matmul's inner k-loop is padded
     with .rept 2 / .rept 4 instead), so buffers are allocated at size 16
-    while FLOP/s is computed using label_size (32 or 64).
+    while the reported time is labeled with label_size (32 or 64).
     """
     xclbin_path = f"build/final_matmul_benchmark_baseline_size{label_size}.xclbin"
     insts_path = f"build/insts_matmul_benchmark_baseline_size{label_size}.bin"
@@ -297,7 +295,7 @@ def benchmark_param_baseline(size: int, iters: int, warmup: int):
 
 def _line_with_band(ax, x_positions, center, lower, upper, label, color):
     # Percentile band (p25-p75) rather than mean +/- 1 std: these per-call
-    # host latencies are right-skewed (occasional slow dispatch/scheduling
+    # host times are right-skewed (occasional slow dispatch/scheduling
     # outliers pull the mean above the median), so a symmetric std band
     # around the mean would misrepresent the spread. Median + percentiles is
     # robust to that skew.
@@ -361,35 +359,15 @@ def plot_results(results, sizes):
                      "unfused", COLOR_UNFUSED)
     _line_with_band(ax, x_positions, baseline_med, baseline_p25, baseline_p75,
                      "fused (baseline)", COLOR_BASELINE)
-    _configure_axes(ax, sizes, "latency (us), median with p25-p75")
-    ax.set_title("NPU matmul kernel latency", color=COLOR_TEXT_PRIMARY)
+    _configure_axes(ax, sizes, "time per multiplication (us), median with p25-p75")
+    ax.set_title("NPU matmul kernel time per multiplication", color=COLOR_TEXT_PRIMARY)
     fig.tight_layout()
-    latency_path = SCRIPT_DIR / "latency_us.png"
-    fig.savefig(latency_path, dpi=150)
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    time_path = FIG_DIR / "time_per_matmul_us.png"
+    fig.savefig(time_path, dpi=150)
     plt.close(fig)
 
-    unfused_gflops_med = col("unfused", "gflops")
-    unfused_gflops_p25 = col("unfused", "gflops_p25")
-    unfused_gflops_p75 = col("unfused", "gflops_p75")
-    baseline_gflops_med = col("baseline", "gflops")
-    baseline_gflops_p25 = col("baseline", "gflops_p25", default=0.0)
-    baseline_gflops_p75 = col("baseline", "gflops_p75", default=0.0)
-
-    fig, ax = plt.subplots(figsize=(6, 4), facecolor=COLOR_SURFACE)
-    ax.set_facecolor(COLOR_SURFACE)
-    _line_with_band(ax, x_positions, unfused_gflops_med, unfused_gflops_p25, unfused_gflops_p75,
-                     "unfused", COLOR_UNFUSED)
-    _line_with_band(ax, x_positions, baseline_gflops_med, baseline_gflops_p25, baseline_gflops_p75,
-                     "fused (baseline)", COLOR_BASELINE)
-    _configure_axes(ax, sizes, "throughput (GFLOP/s), median with p25-p75")
-    ax.set_title("NPU matmul kernel throughput", color=COLOR_TEXT_PRIMARY)
-    fig.tight_layout()
-    throughput_path = SCRIPT_DIR / "throughput_gflops.png"
-    fig.savefig(throughput_path, dpi=150)
-    plt.close(fig)
-
-    print(f"[plots] wrote {latency_path}")
-    print(f"[plots] wrote {throughput_path}")
+    print(f"[plots] wrote {time_path}")
 
 
 def plot_conv_matmul_split(results, sizes):
@@ -423,7 +401,7 @@ def plot_conv_matmul_split(results, sizes):
 
     ax.set_xticks(sizes)
     ax.set_xticklabels([f"size{s}" for s in sizes], color=COLOR_TEXT_PRIMARY)
-    ax.set_ylabel("median latency (us)", color=COLOR_TEXT_PRIMARY)
+    ax.set_ylabel("median time per multiplication (us)", color=COLOR_TEXT_PRIMARY)
     ax.tick_params(colors=COLOR_TEXT_SECONDARY)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
@@ -435,53 +413,76 @@ def plot_conv_matmul_split(results, sizes):
 
     ax.set_title("Unfused kernel: conv vs. matmul split", color=COLOR_TEXT_PRIMARY)
     fig.tight_layout()
-    split_path = SCRIPT_DIR / "conv_matmul_split_us.png"
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    split_path = FIG_DIR / "conv_matmul_split_us.png"
     fig.savefig(split_path, dpi=150)
     plt.close(fig)
 
     print(f"[plots] wrote {split_path}")
 
-    # GFLOP/s isn't additive the way latency is, so conv and matmul get their
-    # own lines here rather than a stacked area -- this shows each kernel's
-    # own throughput, not a share of a combined total.
-    conv_gflops = [results[("conv", s)]["gflops"] for s in sizes]
-    matmul_gflops = [results[("matmul", s)]["gflops"] for s in sizes]
-    baseline_sizes = [s for s in sizes if ("baseline", s) in results]
-    baseline_gflops = [results[("baseline", s)]["gflops"] for s in baseline_sizes]
 
-    fig, ax = plt.subplots(figsize=(6, 4), facecolor=COLOR_SURFACE)
-    ax.set_facecolor(COLOR_SURFACE)
-    ax.plot(sizes, conv_gflops, color=COLOR_CONV, linewidth=2, marker="o", markersize=8, label="conv")
-    ax.plot(sizes, matmul_gflops, color=COLOR_MATMUL, linewidth=2, marker="o", markersize=8, label="matmul")
-    if baseline_sizes:
-        ax.plot(baseline_sizes, baseline_gflops, color=COLOR_BASELINE, linewidth=2, marker="o",
-                markersize=8, label="fused (baseline)")
+def plot_speedup_comparison(results, sizes):
+    """Speedup of our approach over the fused baseline (baseline_time / our_time)
+    versus N, from three sources: the measured benchmark times, the static cycle
+    counts (baseline / (conversion + matmul)), and the analytical model from the
+    report, which for M=N and K=64 reduces to 1.5*N/(N+24). A value above 1 means
+    our approach is faster; the crossover is where a curve passes 1.0. Styling
+    matches figures/speedup_crossover.py.
+    """
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("[plots] matplotlib not installed, skipping plots (pip install matplotlib)")
+        return
+
+    sizes = [s for s in sizes if ("unfused", s) in results and ("baseline", s) in results]
+    if len(sizes) < 2:
+        return
+
+    C_MEAS = "#0072B2"  # measured (blue)
+    C_CYC = "#E69F00"   # static cycle counts (orange)
+    C_ANA = "#009E73"   # analytical model (green)
+    INK, MUTED, GRID = "#222222", "#666666", "#dddddd"
+
+    measured = [results[("baseline", s)]["median_s"] / results[("unfused", s)]["median_s"]
+                for s in sizes]
+    cycles = [PREDICTED_CYCLES_BASELINE[s] / (PREDICTED_CYCLES_CONV[s] + PREDICTED_CYCLES_MATMUL[s])
+              for s in sizes]
+    analytical = [1.5 * s / (s + 24) for s in sizes]   # M=N, K=64: 1.5*N/(N+24)
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.4), dpi=150)
+    ax.axhline(1.0, color=MUTED, lw=1.0, ls="--", zorder=1)
+    ax.plot(sizes, measured, color=C_MEAS, lw=2.3, marker="o", ms=6, label="measured", zorder=3)
+    ax.plot(sizes, cycles, color=C_CYC, lw=2.3, marker="s", ms=6, label="cycle counts", zorder=3)
+    ax.plot(sizes, analytical, color=C_ANA, lw=2.3, marker="^", ms=7, label="analytical model", zorder=3)
 
     ax.set_xticks(sizes)
-    ax.set_xticklabels([f"size{s}" for s in sizes], color=COLOR_TEXT_PRIMARY)
-    ax.set_ylabel("GFLOP/s (median)", color=COLOR_TEXT_PRIMARY)
-    ax.tick_params(colors=COLOR_TEXT_SECONDARY)
-    for spine in ("top", "right"):
-        ax.spines[spine].set_visible(False)
-    for spine in ("left", "bottom"):
-        ax.spines[spine].set_color(COLOR_TEXT_SECONDARY)
-    ax.yaxis.grid(True, color=COLOR_TEXT_SECONDARY, alpha=0.15)
+    ax.set_xticklabels([f"size{s}" for s in sizes], color=INK)
+    ax.set_xlabel("$N$", fontsize=11, color=INK)
+    ax.set_ylabel("speedup (baseline / this work)", fontsize=11, color=INK)
+    ax.grid(True, axis="y", color=GRID, lw=0.8)
     ax.set_axisbelow(True)
-    ax.legend(frameon=False, labelcolor=COLOR_TEXT_PRIMARY)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color(MUTED)
+    ax.tick_params(colors=MUTED, labelsize=9)
+    ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
 
-    ax.set_title("conv vs. matmul vs. fused throughput", color=COLOR_TEXT_PRIMARY)
     fig.tight_layout()
-    split_gflops_path = SCRIPT_DIR / "conv_matmul_split_gflops.png"
-    fig.savefig(split_gflops_path, dpi=150)
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    out = FIG_DIR / "speedup_comparison.png"
+    fig.savefig(out, dpi=150)
     plt.close(fig)
-
-    print(f"[plots] wrote {split_gflops_path}")
+    print(f"[plots] wrote {out}")
 
 
 def main():
     header = (
         f"{'kernel':>18}  {'median (us)':>11}  {'p25-p75 (us)':>15}  "
-        f"{'mean (us)':>10}  {'GFLOP/s':>9}"
+        f"{'mean (us)':>10}"
     )
 
     def print_row(label, stats, speedup=None, speedup_label=""):
@@ -489,7 +490,7 @@ def main():
         print(
             f"{label:>18}  {stats['median_s']*1e6:>11.2f}  "
             f"{stats['p25_s']*1e6:>6.2f}-{stats['p75_s']*1e6:<7.2f}  "
-            f"{stats['mean_s']*1e6:>10.2f}  {stats['gflops']:>9.2f}{suffix}"
+            f"{stats['mean_s']*1e6:>10.2f}{suffix}"
         )
 
     print(header)
@@ -543,6 +544,7 @@ def main():
 
     plot_results(results, SIZES)
     plot_conv_matmul_split(results, SIZES)
+    plot_speedup_comparison(results, SIZES)
 
 
 if __name__ == "__main__":
