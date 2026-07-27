@@ -85,10 +85,10 @@ Config(
     prim_main=PrimType.GEMM,
     prim_last=LastType.NONE,
     prim_first=FirstType.ZERO,
-    dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>],
-    exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
-    dim_sizes=[12, 6, 18, 4, 4, 4096, 64, 64],
-    strides=[[6291456, 256, 0, 64, 0, 1536, 1, 0], [0, 0, 256, 0, 64, 4608, 0, 1], [7077888, 1179648, 256, 294912, 64, 0, 4608, 1]]
+    dim_types=[<DimType.M: 0>, <DimType.M: 0>, <DimType.N: 1>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>, <DimType.M: 0>, <DimType.N: 1>, <DimType.K: 2>],
+    exec_types=[<ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.PAR: 1>, <ExecType.SEQ: 0>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>, <ExecType.PRIM: 2>],
+    dim_sizes=[4, 3, 4, 12, 9, 64, 128, 128, 64],
+    strides=[[18874368, 6291456, 0, 128, 0, 98304, 1, 0, 1536], [0, 0, 4718592, 0, 128, 73728, 0, 1, 1152], [21233664, 1769472, 5308416, 128, 196608, 0, 1, 1536, 0]]
 )
 ```
 
@@ -107,28 +107,31 @@ b) **Verify** correctness by comparing the kernel output against the `torch.eins
 
 c) Use `triton.testing.do_bench` to measure the average kernel runtime. **Compute** and **report** the achieved performance in TFLOPS.
 
-Try1: TFLOPS kernel: 12.11
-
-Try2: TFLOPS kernel: 40.80
-
-Try3:
 ```
-The result is correct!
 torch.einsum:
 Execution time of torch einsum: 11.46 ms
 TFLOPS of torch einsum: 60.73
-
-Optimized kernel:
-Execution time of optimized kernel: 10.30 ms
-TFLOPS of optimized kernel: 67.57
 ```
 
-```{literalinclude} src/task_try3.py
+Try3:
+```
+Optimized kernel:
+Execution time of optimized kernel: 62.28 ms
+TFLOPS of optimized kernel: 11.17
+```
+Toleranz: 1e-2
+
+Try5:
+```
+Optimized kernel:
+Execution time of optimized kernel: 10.29 ms
+TFLOPS of optimized kernel: 67.59
+```
+
+
+```{literalinclude} src/task_try5.py
 :language: python
 :lines: 109-151
 ```
 
-```{literalinclude} src/task_try3.py
-:language: python
-:pyobject: contraction
-```
+![alt text](../../assignments/06_assignment/src/results/try5_16.png)

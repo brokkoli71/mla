@@ -153,12 +153,12 @@ if __name__ == "__main__":
     print("Finales Shape:", C_final.shape)
 
     expected = torch.einsum(einsum_string, tensor_acspx_16, tensor_bspy_16)
-    assert torch.allclose(C_final, expected, atol=2e-0), "The result is incorrect!"
+    assert torch.allclose(C_final, expected, atol=1e-2), "The result is incorrect!"
     print("The result is correct!")
 
     plot_tensor(
         C_final.to('cpu'),
-        path=file_dir / 'results' / 'try4_torch_16.png',
+        path=file_dir / 'results' / 'try4_16.png',
         title='Lightfield Tensorring Decomposition - PyTorch (Float16)'
     )
     
