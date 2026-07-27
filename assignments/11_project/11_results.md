@@ -139,14 +139,14 @@ For the output tile size 32x32, four 16x16 Output blocks needs to be computed. S
 
 ```{literalinclude} ../../assignments/11_project/src/size32/matmul.s
 :language: assembly
-:lines: 137-192
+:lines: 172-192
 ```
 
 Attemps were made to optimise this further in `size32/matmul_optimized.s`, using just one or zero nops between blocks. But this doesn't work at the momment and needs further work. 
 
 ```{literalinclude} ../../assignments/11_project/src/size32/matmul_optimized.s
 :language: assembly
-:lines: 350-377
+:lines: 340-364
 ```
 
 #### Building and running the kernels
@@ -161,7 +161,7 @@ All kernels are built and executed through the `Makefile` in `assignments/11_pro
 | `run_param` / `run_param32` / `run_param64` | parameterized fused baseline | default / 32 / 64 |
 | `benchmark` | all of the above, timed | 16, 32, 64 |
 
-For example, `make run_matmul_opt64` builds and verifies the optimized $64\times64$ kernel. `make benchmark` additionally builds the benchmark variants of every design, whose `.mlir` files repeat the compute call 100000 times per launch, and runs `src/benchmark/benchmark.py` to produce the timings reported below; `make clean` removes the `build` directory. Note that `matmul_not_optimized.s` is kept only as documentation of the first proof-of-concept and has no run target, and that `run_matmul_opt32` currently fails verification because of the unresolved scheduling problem in the $32\times32$ matmul kernel discussed above, while the conversion kernel it contains is correct.
+For example, `make run_matmul_opt64` builds and verifies the optimized $64\times64$ kernel. `make benchmark` additionally builds the benchmark variants of every design, whose `.mlir` files repeat the compute call 100000 times per launch, and runs `src/benchmark/benchmark.py` to produce the timings reported below; `make clean` removes the `build` directory. Note that `matmul_not_optimized.s` is kept only as documentation of the first proof-of-concept and has no run target, and that `run_matmul_opt32` currently fails verification as mentioned above, while the conversion kernel it contains is correct.
 
 #### Evaluation
 We evaluate our kernels in two ways: statically, by counting the issued instruction bundles (one bundle is issued per cycle, so this is the cycle count ignoring stalls), and empirically, by measuring the execution time on the NPU.
