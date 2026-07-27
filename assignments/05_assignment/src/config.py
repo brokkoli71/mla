@@ -128,17 +128,17 @@ def generate_config(einsum: str, input_shapes: list[tuple[int]], dim_order: str 
 
     exec_types = [ExecType.SEQ] * len(dim_types)
 
+    size_of = dict(zip(dim_names, dim_sizes))
+
     strides = []
     for tensor_dims in [A_dims, B_dims, C_dims]:
+        own_strides = {}
         stride = 1
-        current = []
-        for size, name in zip(dim_sizes[::-1], dim_names[::-1]):
-            if name not in tensor_dims:
-                current = [0] + current
-            else:
-                current = [stride] + current
-                stride *= size
-        strides.append(current)
+        for name in tensor_dims[::-1]:
+            own_strides[name] = stride
+            stride *= size_of[name]
+        # Map onto the global dimension slots; 0 means "not in this tensor".
+        strides.append([own_strides.get(name, 0) for name in dim_names])
     return Config(
         data_type=DataType.FLOAT16,
         prim_main=PrimType.GEMM,
@@ -154,5 +154,49 @@ def test_generate_config():
     config = generate_config(einsum, input_shapes)
     print(config)
 
+def test_generate_config_consistent_dim_order():
+    config = generate_config("cmk, ckn -> cmn", [(4, 4096, 4096), (4, 4096, 4096)])
+    assert config.dim_sizes == [4, 4096, 4096, 4096], config.dim_sizes
+    assert config.strides == [
+        [16777216, 4096, 1, 0],       # cmk
+        [16777216, 0, 4096, 1],       # ckn
+        [16777216, 4096, 0, 1],       # cmn
+    ], config.strides
+    print("test_generate_config_consistent_dim_order passed!")
+
+def test_generate_config_permuted_dim_order():
+    def row_major(shape):
+        strides = [1] * len(shape)
+        for i in range(len(shape) - 2, -1, -1):
+            strides[i] = strides[i + 1] * shape[i + 1]
+        return strides
+
+    # n comes before k in B, but after k in the global order m, k, n.
+    config = generate_config("mk, nk -> mn", [(32, 8), (16, 8)])
+    assert config.dim_sizes == [32, 8, 16], config.dim_sizes
+    m_a, k_a = row_major((32, 8))
+    n_b, k_b = row_major((16, 8))
+    m_c, n_c = row_major((32, 16))
+    assert config.strides == [
+        [m_a, k_a, 0],                # mk
+        [0, k_b, n_b],                # nk  -> k is the contiguous axis, not n
+        [m_c, 0, n_c],                # mn
+    ], config.strides
+
+    a, c, s, p, x, b, y = 4, 3, 64, 64, 1536, 4, 1152
+    config = generate_config("acspx, bspy -> abcyx", [(a, c, s, p, x), (b, s, p, y)])
+    assert config.dim_sizes == [a, c, s, p, x, b, y], config.dim_sizes
+    a_a, c_a, s_a, p_a, x_a = row_major((a, c, s, p, x))
+    b_b, s_b, p_b, y_b = row_major((b, s, p, y))
+    a_c, b_c, c_c, y_c, x_c = row_major((a, b, c, y, x))
+    assert config.strides == [
+        [a_a, c_a, s_a, p_a, x_a, 0, 0],      # acspx
+        [0, 0, s_b, p_b, 0, b_b, y_b],        # bspy
+        [a_c, c_c, 0, 0, x_c, b_c, y_c],      # abcyx
+    ], config.strides
+    print("test_generate_config_permuted_dim_order passed!")
+
 if __name__ == "__main__":
     test_generate_config()
+    test_generate_config_consistent_dim_order()
+    test_generate_config_permuted_dim_order()
