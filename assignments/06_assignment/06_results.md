@@ -94,7 +94,7 @@ Config(
 
 ```{literalinclude} src/task_try3.py
 :language: python
-:lines: 91-104
+:lines: 101-107
 ```
 
 ---
@@ -119,7 +119,6 @@ Optimized kernel:
 Execution time of optimized kernel: 62.28 ms
 TFLOPS of optimized kernel: 11.17
 ```
-Toleranz: 1e-2
 
 Try5:
 ```
@@ -127,11 +126,7 @@ Optimized kernel:
 Execution time of optimized kernel: 10.29 ms
 TFLOPS of optimized kernel: 67.59
 ```
+Toleranz: 1e-2
 
-
-```{literalinclude} src/task_try5.py
-:language: python
-:lines: 109-151
-```
-
+Try5 result image:
 ![alt text](../../assignments/06_assignment/src/results/try5_16.png)

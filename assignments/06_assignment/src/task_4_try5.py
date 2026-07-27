@@ -29,8 +29,6 @@ def contraction(A, B, C, n1: ct.Constant[int], k: ct.Constant[int], x: ct.Consta
     m1_i = swizzle % n1 
     n1_i = swizzle // n1    
 
-    #  grid = (6*6*6*24,1,1)
-
     acc = ct.zeros((x,y), dtype=ct.float16)
     
     k_t = 64
