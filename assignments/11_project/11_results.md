@@ -149,6 +149,20 @@ Attemps were made to optimise this further in `size32/matmul_optimized.s`, using
 :lines: 350-377
 ```
 
+#### Building and running the kernels
+All kernels are built and executed through the `Makefile` in `assignments/11_project`, which has to be run inside the NPU development environment. A single `make run_*` target performs the whole chain. The available targets are:
+
+| target | kernel | $M=N$ |
+| --- | --- | --- |
+| `run_matmul` / `run_matmul_opt` | `size16/matmul.s` / `size16/matmul_optimized.s` | 16 |
+| `run_matmul32` / `run_matmul_opt32` | `size32/matmul.s` / `size32/matmul_optimized.s` | 32 |
+| `run_matmul64` / `run_matmul_opt64` | `size64/matmul.s` / `size64/matmul_optimized.s` | 64 |
+| `run_baseline` | fused baseline | 16 |
+| `run_param` / `run_param32` / `run_param64` | parameterized fused baseline | default / 32 / 64 |
+| `benchmark` | all of the above, timed | 16, 32, 64 |
+
+For example, `make run_matmul_opt64` builds and verifies the optimized $64\times64$ kernel. `make benchmark` additionally builds the benchmark variants of every design, whose `.mlir` files repeat the compute call 100000 times per launch, and runs `src/benchmark/benchmark.py` to produce the timings reported below; `make clean` removes the `build` directory. Note that `matmul_not_optimized.s` is kept only as documentation of the first proof-of-concept and has no run target, and that `run_matmul_opt32` currently fails verification because of the unresolved scheduling problem in the $32\times32$ matmul kernel discussed above, while the conversion kernel it contains is correct.
+
 #### Evaluation
 We evaluate our kernels in two ways: statically, by counting the issued instruction bundles (one bundle is issued per cycle, so this is the cycle count ignoring stalls), and empirically, by measuring the execution time on the NPU.
 
@@ -210,3 +224,5 @@ Speedup of our approach over the fused baseline (baseline time / our time) for $
 All three sources show the same trend and cross $1$ between $N=32$ and $N=64$: our approach becomes faster only for the largest matrices, consistent with the analytical crossover at $N=48$.
 
 The analytical model deviates most at $N=16$, where it predicts $0.60$ while the measurement is $0.66$. This is because the analytical model drops the constant $\Theta(1)$ warmup and cooldown terms, whose relative weight is largest for the smallest kernel; the cycle-count curve, which includes these constants, stays closest to the measurement there ($0.68$). For $N=32$ and $N=64$ the measured speedup lies slightly below both predictions ($1.06$ against $1.15$ and $1.09$ at $N=64$), consistent with the additional per-call host overhead that neither model captures. Overall, the expected trend is confirmed.
+
+
