@@ -92,13 +92,13 @@ Inspect the instructions and **fill in** the table.
 
 | Slot | Register classes (dst / src)   | Example registers |
 |------|------------------------------- |-------------------|
-| V    | Acuumulator / Accu and Vector  | dm0, cm0 / x3, y2 |
-| A    | Scalar, Vector, Accu / L1 + p  | x7, cm1 / p1      |
-| B    | Scalar, Vector / L1+ p         | x7, bml0 / p1     |
+| V    | Acuumulator / Accu and Vector  | dm0, cm0 / dm0, x3|
+| A    | Scalar, Vector, Accu / L1 + p  | r10 x7, cm1 / p1  |
+| B    | Scalar, Vector / L1+ p         | x7, r1 / p1       |
 | S    | p / Vector, Accum.             | p1 / x7, bmh0     |
-| X    | Scalar / Scalar, intermediate  | r11, m1           |
-| M    | all / all                      | r12, x6 , m3      |
-| XM   | all / all                      | r5, y3, m2        |
+| X    | Scalar / Scalar, intermediate  | r11 / r3, #3      |
+| M    | all / all                      | r12, x6 , m3, x3  |
+| XM   | all / all                      | r5, y3, m2, dm2   |
 
 ---
 

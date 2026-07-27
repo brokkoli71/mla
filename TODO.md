@@ -6,7 +6,7 @@
 - [x] 05: 8.50/10 config fixen -> Hannes
 - [ ] Hannes: generate_config gegenchecken 
 - [ ] 06: 8.50/10 -> Falko
-- [ ] 07: 8.50/10 -> Falko
+- [x] 07: 8.50/10 -> Falko
 - [ ] 08: 6.50/10 -> Falko
 - [x] 09: 0/10 -> Hannes
 - [x] 10: 7/10 -> Hannes
