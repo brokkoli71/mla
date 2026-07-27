@@ -27,30 +27,29 @@ matmul:
 
 // TODO: implement tensor kernel
   mov p3, p0 
+  // todo why not the same?
   mov m0, #1024
   padds [p3], m0
-  #padds [p3], #256
-  #padds [p3], #256
-  #padds [p3], #256
-  #padds [p3], #256
+  //padds [p3], #256
+  //padds [p3], #256
+  //padds [p3], #256
+  //padds [p3], #256
   #mov p5, p2
   // load output tile p1 q1;                      
   vlda.conv.fp32.bf16	 cml2, [p2, #0] 
   vlda.conv.fp32.bf16	 cmh2, [p2, #64]
-  vlda.conv.fp32.bf16	 cml4, [p2, #256]
-  vlda.conv.fp32.bf16	 cmh4, [p2, #320]
   //load 8x8 in0 ;                    load 8x8 in1; copy base pointer
   vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p1, #0]; mov p4, p1
   vlda.conv.fp32.bf16	 cmh0, [p0], #64; vldb x1, [p1, #64]; padds [p4], #256
-  // load output tile p2 q1; 
+  // load in0 tile  p2
   vlda.conv.fp32.bf16	 cml3, [p3], #64; mov	r0, #52
   vlda.conv.fp32.bf16	 cmh3, [p3], #64; mov	r1, #53
     //load 2nd 8x8 in0 ;                    load 2nd 8x8 in1;
   vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p4], #64   ; mov r3, #780
   vlda.conv.fp32.bf16	 cmh0, [p0], #64; vldb x1, [p4], #192
-  // load in0 tile  p2
-  vlda.conv.fp32.bf16	 cml3, [p3], #64
-  vlda.conv.fp32.bf16	 cmh3, [p3], #64
+  // load output tile p2 q1; 
+  vlda.conv.fp32.bf16	 cml4, [p2, #256]
+  vlda.conv.fp32.bf16	 cmh4, [p2, #320]
                                                                                               //load tile3 8x8 in0 ;                    load tile3 8x8 in1;
                                                                                               vlda.conv.fp32.bf16	 cml0, [p0], #64; vldb x0, [p4], #64
   // transpose in1 tile1; convert in0 tile1 bfp16
