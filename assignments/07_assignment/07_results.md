@@ -80,8 +80,8 @@ Inspect the instructions and **fill in** the table.
 | `vlda.conv.fp32.bf16 cml0, [p0, #0]` | A    | load p0 into cml0 (fp32 to bf16)|
 | `movx r6, #1`                        | X    | write 1 to register 6        |
 | `vldb x1, [p1, #0]`                  | B    | load p1 to vector register 1 |
-| `vmov bmhl2, bmhh4`                  | V    | vector move bmhh4 to bmhl2   |
-| `mova r0, #60`                       | M/A? | Write 60 to register 0       |
+| `vmov bmhl2, bmhh4`                  | M    | vector move bmhh4 to bmhl2   |
+| `mova r0, #60`                       | A    | Write 60 to register 0       |
 | `vadd.f dm0, dm0, dm1, r0`           | V    | add dm1 onto dm0 (60 is configuration) |
 | `ret lr`                             | X    |     return                   |
 | `mov p1, p4`                         | M    |     move p4 to p1            |
@@ -89,25 +89,16 @@ Inspect the instructions and **fill in** the table.
 
 2. **Fill in** the register-class table:
 
-| Slot | Register classes (dst / src) | Example registers |
-|------|------------------------------|-------------------|
-| V    |  dm,cm,bm                    | dm0               |
-| A    |  from p to dm,cm,bm,x,y      | p0                |
-| B    |  from p to x,y               | p0                |
-| S    |  from dm,cm,bm,x,y to p      | dm0               |
-| X    |  x,y                         | x1                |
-| M    |  p,r                         | r0                |
-| XM   |  x,y,p,r                     | x1                |
 
-| Slot | Register classes (dst / src) | Example registers |
-|------|------------------------------|-------------------|
-| V    | Vector Reg, Acuumulator reg  | x3, y2, wl7, cm0  |
-| A    | Vector, Accum. / p           | p1, x7, cm1       |
-| B    | Vector, Accum. / p           | p1, x7, bml0      |
-| S    | p / Vector, Accum.           | p1, x7, bmh0 |
-| X    | Scalar                       | r11               |
-| M    | Scalar, vector               | r12, x6           |
-| XM   | Scalar, vector               | r5, y3            |
+| Slot | Register classes (dst / src)   | Example registers |
+|------|------------------------------- |-------------------|
+| V    | Acuumulator / Accu and Vector  | dm0, cm0 / x3, y2 |
+| A    | Scalar, Vector, Accu / L1 + p  | x7, cm1 / p1      |
+| B    | Scalar, Vector / L1+ p         | x7, bml0 / p1     |
+| S    | p / Vector, Accum.             | p1 / x7, bmh0     |
+| X    | Scalar / Scalar, intermediate  | r11, m1           |
+| M    | all / all                      | r12, x6 , m3      |
+| XM   | all / all                      | r5, y3, m2        |
 
 ---
 
