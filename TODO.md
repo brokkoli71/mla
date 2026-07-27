@@ -4,15 +4,15 @@
 - [x] 03: 7.5/10 Block swizzling -> Hannes
 - [x] 04: 10/10
 - [x] 05: 8.50/10 config fixen -> Hannes
-- [ ] Hannes: generate_config gegenchecken 
+- [x] Hannes: generate_config gegenchecken 
 - [ ] 06: 8.50/10 -> Falko
 - [x] 07: 8.50/10 -> Falko
 - [ ] 08: 6.50/10 -> Falko
 - [x] 09: 0/10 -> Hannes
 - [x] 10: 7/10 -> Hannes
 - [ ] formatierung in sphinx gegenchecken?
-- [ ] skelette aufräumen
-- [ ] Projekt schreiben -> Hannes, Falko
+- [ ] skelette aufräumen (alles außer 6 und 8 sieht clean aus)
+- [x] Projekt schreiben -> Hannes, Falko
 - [ ] git tag für finale abgabe
 
 
