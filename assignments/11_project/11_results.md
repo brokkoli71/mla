@@ -1,4 +1,4 @@
-## Group Specific Component - Un-fusing the MatMul kernel
+## Group Specific Component: Un-fusing the MatMul kernel
 In this work, we try to optimize the throughput of multiplication of two matrices in BF16 data format on an AMD XDNA 2 NPU using the AIE-API. 
 
 In the following we use the following naming of matrices and dimensions: $A\times B = C, A\in \mathbb R^{M\times K}, B\in \mathbb R^{K\times N}$
