@@ -107,13 +107,14 @@ A single store can only write 64 bytes, but one BFP16ebs8 group of 64 values occ
 
 Both instructions are fixed to the registers `p2`, `sf` and `r26`. The pointer, the shift/format register and the remainder counter cannot be substituted by other registers. `p2` is a live store cursor that both the pushes and the flush advance on their own, so the base address of a group has to be captured with `movs` right after the flush and restored with `mov` before the next group.
 
-We arrived at this kernel in three optimization steps, which are preserved in the directory `size16` as the files `matmul_not_optimized.s`, `matmul.s` and `matmul_optimized.s`.
+For the different sizes we have 3 implementations each:
 
-`matmul_not_optimized.s` is the naive implementation: it converts the two input matrices one after the other and issues a push only every second cycle, which amounts to 16 cycles per stored 8x64 matrix block.
+`matmul_not_optimized.s` as the first proof of concept implementation with minimal interleaving of operations. It converts the two input matrices one after the other and issues a push only every second cycle, which amounts to 16 cycles per stored 8x64 matrix block.
 
-`matmul.s` interleaves the conversion of both input matrices and uses the vector registers as buffers, so that a conversion can be issued in almost every cycle. Since the widening of the `b` matrix occupies the vector slot, the two matrices are processed in alternating groups of four pushes, each terminated by a flush and a bundle that restores the group base pointer. This brings the cost down to 12 cycles per stored 8x64 matrix block.
+`matmul.s`, the fastest implementation we were able to make work during this project. It interleaves the conversion of both input matrices and uses the vector registers as buffers, so that a conversion can be issued in almost every cycle. Since the widening of the `b` matrix occupies the vector slot, the two matrices are processed in alternating groups of four pushes, each terminated by a flush and a bundle that restores the group base pointer. This brings the cost down to 12 cycles per stored 8x64 matrix block.
 
-`matmul_optimized.s` pushes the same idea further and holds more values in registers, so that a full group of eight pushes can be issued back to back before a flush is needed. One flush and one pointer bundle then amortize over eight pushes instead of four, which reduces the cost to 10 cycles per stored 8x64 matrix block.
+and `matmul_optimized.s` which contains ideas and attempts to further optimize the kernels but that had problems we discuss in the following.
+A further optimized Kernel conversion is working. It holds more values in registers, so that a full group of eight pushes can be issued back to back before a flush is needed. One flush and one pointer bundle then amortize over eight pushes instead of four, which reduces the cost to 10 cycles per stored 8x64 matrix block.
 
 Lines 63-118 of `matmul_optimized.s` contain a further, unsuccessful optimization attempt. There, the bundle that only restores the group base pointer after each flush is removed and the `mov p2, p3` is folded into the flush bundle itself, which would save one more cycle per group. The resulting kernel produces wrong data, and we could not determine why: neither the pointer arithmetic nor the fact that the pointer move shares its bundle with the flush explains the failure, since both could be excluded individually in separate experiments.
 
@@ -140,7 +141,7 @@ For the output tile size 32x32, four 16x16 Output blocks needs to be computed. S
 :lines: 137-192
 ```
 
-Attemps were made to optimise this further in `size32/matmul_optimized.s`, using just one or zero nops between blocks. But this doesn't work now and needs further work. 
+Attemps were made to optimise this further in `size32/matmul_optimized.s`, using just one or zero nops between blocks. But this doesn't work at the momment and needs further work. 
 
 ```{literalinclude} ../../assignments/11_project/src/size32/matmul_optimized.s
 :language: assembly
