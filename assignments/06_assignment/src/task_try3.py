@@ -17,7 +17,6 @@ sys.path.append(str(assignment_05_src))
 from optimizer import Optimizer
 from config import Config, DataType, PrimType, DimType, ExecType, generate_config
 
-# Config nach den beiden split_dim-Aufrufen (9 Dimensionen!):
 # Config(
 #     data_type=DataType.FLOAT16,
 #     prim_main=PrimType.GEMM,
@@ -46,9 +45,9 @@ def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Const
 
     acc = ct.zeros((m0, n0), dtype=ct.float32)
 
-    # SEQ-Schleife laeuft ueber dim 5 (s), die PRIM-K-Dimension (p) steckt in dim 8
+    
     for k_i in range(k):
-        # M steht in dim 6, K in dim 8 -> Tile ist bereits (m, k), kein transpose noetig
+        
         A_ = ct.load(
             A,
             index=(m3_i, m2_i, n2_i, m1_i, n1_i, k_i, 0, 0, 0),
@@ -56,7 +55,7 @@ def contraction(A, B, C, m1: ct.Constant[int], n1: ct.Constant[int], k: ct.Const
             padding_mode=ct.PaddingMode.ZERO
         )
         A_ = ct.reshape(A_, (m0, k0))
-        # N steht in dim 7, K in dim 8 -> Tile ist (n, k), muss auf (k, n) transponiert werden
+       
         B_ = ct.load(
             B,
             index=(m3_i, m2_i, n2_i, m1_i, n1_i, k_i, 0, 0, 0),
