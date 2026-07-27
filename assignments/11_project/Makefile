@@ -17,24 +17,24 @@ obj_matmul: build/matmul.o
 build/matmul.o: src/size16/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
-build/matmul_optimiert.o: src/size16/matmul_optimiert.s | build/
+build/matmul_optimized.o: src/size16/matmul_optimized.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # Derive an mlir variant that links the optimized object instead of matmul.o,
 # keeping src/size16/matmul.mlir as the single source of truth.
-build/matmul_optimiert.mlir: src/size16/matmul.mlir | build/
-	sed 's/matmul\.o/matmul_optimiert.o/g' $< > $@
+build/matmul_optimized.mlir: src/size16/matmul.mlir | build/
+	sed 's/matmul\.o/matmul_optimized.o/g' $< > $@
 
 build/matmul_size32.o: src/size32/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
-build/matmul_optimiert_size32.o: src/size32/matmul_optimiert.s | build/
+build/matmul_optimized_size32.o: src/size32/matmul_optimized.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # Same trick as size16: derive an mlir variant linking the optimized object,
 # keeping src/size32/matmul.mlir as the single source of truth.
-build/matmul_optimiert_size32.mlir: src/size32/matmul.mlir | build/
-	sed 's/matmul_size32\.o/matmul_optimiert_size32.o/g' $< > $@
+build/matmul_optimized_size32.mlir: src/size32/matmul.mlir | build/
+	sed 's/matmul_size32\.o/matmul_optimized_size32.o/g' $< > $@
 
 build/zero.o: src/size16/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
@@ -45,13 +45,13 @@ build/zero_size32.o: src/size32/zero.s | build/
 build/matmul_size64.o: src/size64/matmul.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
-build/matmul_optimiert_size64.o: src/size64/matmul_optimiert.s | build/
+build/matmul_optimized_size64.o: src/size64/matmul_optimized.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
 
 # Same trick as size16/size32: derive an mlir variant linking the optimized
 # object, keeping src/size64/matmul.mlir as the single source of truth.
-build/matmul_optimiert_size64.mlir: src/size64/matmul.mlir | build/
-	sed 's/matmul_size64\.o/matmul_optimiert_size64.o/g' $< > $@
+build/matmul_optimized_size64.mlir: src/size64/matmul.mlir | build/
+	sed 's/matmul_size64\.o/matmul_optimized_size64.o/g' $< > $@
 
 build/zero_size64.o: src/size64/zero.s | build/
 	$(PEANO_CC) --target=aie2p-none-unknown-elf -c $< -o $@
@@ -78,12 +78,12 @@ build/final_matmul_size16.xclbin: build/zero.o build/matmul.o src/size16/matmul.
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size16.xclbin \
 	    ../src/size16/matmul.mlir
 
-build/final_matmul_opt_size16.xclbin: build/zero.o build/matmul_optimiert.o build/matmul_optimiert.mlir | build/
+build/final_matmul_opt_size16.xclbin: build/zero.o build/matmul_optimized.o build/matmul_optimized.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
 	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_opt_size16.bin \
 	    --aie-generate-xclbin --xclbin-name=final_matmul_opt_size16.xclbin \
-	    matmul_optimiert.mlir
+	    matmul_optimized.mlir
 
 build/final_matmul_size32.xclbin: build/zero_size32.o build/matmul_size32.o src/size32/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
@@ -92,12 +92,12 @@ build/final_matmul_size32.xclbin: build/zero_size32.o build/matmul_size32.o src/
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size32.xclbin \
 	    ../src/size32/matmul.mlir
 
-build/final_matmul_opt_size32.xclbin: build/zero_size32.o build/matmul_optimiert_size32.o build/matmul_optimiert_size32.mlir | build/
+build/final_matmul_opt_size32.xclbin: build/zero_size32.o build/matmul_optimized_size32.o build/matmul_optimized_size32.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
 	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_opt_size32.bin \
 	    --aie-generate-xclbin --xclbin-name=final_matmul_opt_size32.xclbin \
-	    matmul_optimiert_size32.mlir
+	    matmul_optimized_size32.mlir
 
 build/final_matmul_size64.xclbin: build/zero_size64.o build/matmul_size64.o src/size64/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
@@ -106,12 +106,12 @@ build/final_matmul_size64.xclbin: build/zero_size64.o build/matmul_size64.o src/
 	    --aie-generate-xclbin --xclbin-name=final_matmul_size64.xclbin \
 	    ../src/size64/matmul.mlir
 
-build/final_matmul_opt_size64.xclbin: build/zero_size64.o build/matmul_optimiert_size64.o build/matmul_optimiert_size64.mlir | build/
+build/final_matmul_opt_size64.xclbin: build/zero_size64.o build/matmul_optimized_size64.o build/matmul_optimized_size64.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
 	    --no-xchesscc --no-xbridge --peano $(PEANO_INSTALL_DIR) \
 	    --aie-generate-npu-insts --npu-insts-name=insts_matmul_opt_size64.bin \
 	    --aie-generate-xclbin --xclbin-name=final_matmul_opt_size64.xclbin \
-	    matmul_optimiert_size64.mlir
+	    matmul_optimized_size64.mlir
 
 build/final_matmul_baseline_size16.xclbin: build/zero.o build/matmul_baseline.o src/baseline/matmul.mlir | build/
 	cd build && aiecc.py --alloc-scheme=bank-aware --no-compile-host \
