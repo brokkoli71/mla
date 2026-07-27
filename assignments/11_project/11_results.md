@@ -187,12 +187,12 @@ The two curves cross between $N=32$ and $N=64$: the fused baseline is faster at 
 :alt: Time of the unfused kernel split into conversion and matmul
 :width: 100%
 
-Time per multiplication of our approach, split into the conversion and the matmul kernel (stacked; the markers show the two measured points and their sum).
+Time per multiplication of our approach, split into the conversion and the matmul kernel (stacked; the markers show the two measured points).
 ```
 
 Splitting our approach into its two kernels shows why: the conversion time grows roughly linearly with $N$ ($0.05 \to 0.10 \to 0.18\,\mu s$), whereas the matmul time grows roughly quadratically ($0.04 \to 0.11 \to 0.33\,\mu s$), matching the $\Theta(N)$ conversion cost and the $\Theta(N^2)$ number of `vmac.f` instructions. The conversion's share of the total therefore shrinks as the matrices grow, so the one-time conversion is increasingly amortized by the cheaper multiplication, which is the effect our approach relies on.
 
-Finally, we compare the speedup of our approach over the fused baseline (baseline time / our time) from three sources: the measured benchmark times, the static cycle counts (baseline / (conversion + matmul)), and the analytical model from the *Expected speedup* section, which for $M=N$ and $K=64$ reduces to $1.5N/(N+24)$.
+Finally, we compare the speedup of our approach over the fused baseline (baseline time / our time) from three sources: the measured benchmark times, the static cycle counts (baseline / (conversion + matmul)), and the analytical model from the *Expected speedup* section, which for $M=N$ reduces to $1.5N/(N+24)$.
 
 | $N$ | measured | cycle counts | analytical |
 | --- | --- | --- | --- |
